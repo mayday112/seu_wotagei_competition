@@ -498,6 +498,7 @@ export function createComposerView(el, ctx) {
       return;
     }
     const body = { name: state.name, items: plainItems(), connections: plainConnections() };
+    const epoch = state.editEpoch; // 在飞窗口内的编辑会使纪元前移（下方据此刻意不整包回写）
     state.saving = true;
     try {
       const res = state.layoutId
@@ -522,8 +523,20 @@ export function createComposerView(el, ctx) {
         toast((data && data.error) || `保存失败（HTTP ${res.status}）`, "error");
         return;
       }
-      applyServerLayout(data.layout || data);
-      toast("已保存", "success");
+      const layout = data.layout || data;
+      if (state.editEpoch !== epoch) {
+        // 保存期间有新编辑：applyServerLayout 会用快照整体替换 items/connections 并
+        // 无条件清 dirty（beforeunload 守卫随之失效），快照之后的全部编辑被静默滚掉。
+        // 保留本地编辑不动，仅回填 layoutId（新建转更新，下次保存走 PUT），提示再存。
+        if (!state.layoutId && layout && typeof layout.id === "string") {
+          state.layoutId = layout.id;
+          state.dirty = true;
+        }
+        toast("已保存，但保存期间有新的修改未入盘，请再次保存", "warning");
+      } else {
+        applyServerLayout(layout);
+        toast("已保存", "success");
+      }
       await refresh();
     } catch (e) {
       if (!stopped && state) toast(`网络错误，保存失败：${e && e.message ? e.message : e}`, "error");
@@ -569,6 +582,13 @@ export function createComposerView(el, ctx) {
     }
   }
 
+  /** 编辑纪元：任何本地编辑 +1。save() 发起时记下快照纪元，响应到达时据此判断
+   * 本地是否已有保存之外的新编辑（有则不整包回写，滚掉快照后的编辑 = 数据丢失） */
+  function markDirty() {
+    state.dirty = true;
+    state.editEpoch += 1;
+  }
+
   /* ---------- items 级操作 ---------- */
 
   function addComponent(name) {
@@ -578,7 +598,7 @@ export function createComposerView(el, ctx) {
       state.items.map((it) => it.id),
     );
     state.items.push({ id, component: name, title: "", props: {} });
-    state.dirty = true;
+    markDirty();
     selectItem(id);
   }
 
@@ -616,14 +636,14 @@ export function createComposerView(el, ctx) {
     if (j < 0 || j >= state.items.length) return;
     const moved = state.items.splice(index, 1)[0];
     state.items.splice(j, 0, moved);
-    state.dirty = true;
+    markDirty();
   }
 
   function removeItem(id) {
     const idx = state.items.findIndex((it) => it.id === id);
     if (idx < 0) return;
     state.items.splice(idx, 1);
-    state.dirty = true;
+    markDirty();
     // 连线表单指向被删实例时清掉该侧（连同词汇联动的 out/in），避免静默建出悬挂连线
     // （既有 connections 不级联删：悬挂连线列表透明展示、运行时 warn 跳过，用户可手删）
     if (state.connFrom === id) {
@@ -641,14 +661,14 @@ export function createComposerView(el, ctx) {
 
   function onNameInput(event) {
     state.name = event.target.value;
-    state.dirty = true;
+    markDirty();
   }
 
   function onTitleInput(event) {
     const it = sel();
     if (!it) return;
     it.title = event.target.value;
-    state.dirty = true;
+    markDirty();
   }
 
   function onPropsInput(event) {
@@ -672,7 +692,7 @@ export function createComposerView(el, ctx) {
     }
     state.propsError = "";
     it.props = parsed;
-    state.dirty = true;
+    markDirty();
   }
 
   /* ---------- connections 级操作（P15 §4） ---------- */
@@ -788,14 +808,14 @@ export function createComposerView(el, ctx) {
       return;
     }
     state.connections.push(draft); // id 缺省，保存时由后端补 "cn-xxxxxx"
-    state.dirty = true;
+    markDirty();
     state.connError = "";
   }
 
   function removeConnection(index) {
     if (index < 0 || index >= state.connections.length) return;
     state.connections.splice(index, 1);
-    state.dirty = true;
+    markDirty();
   }
 
   /* ---------- 预览（规格 §3 / §5.1） ---------- */
@@ -960,6 +980,7 @@ export function createComposerView(el, ctx) {
     previewing: false,
     saving: false,
     dirty: false,
+    editEpoch: 0,
     IC: buildIcons(),
     // 方法（经闭包读写 state）
     fmt: formatDate,

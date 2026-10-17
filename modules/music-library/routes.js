@@ -470,13 +470,37 @@ app.post("/api/move_to_recycle", (req, res) => {
       fs.mkdirSync(recycleDir, { recursive: true });
     }
 
-    // 目标文件路径 (添加时间戳避免重名)
+    // 目标文件路径 (添加时间戳避免重名)。musics_free 为全部组别共享的回收目录：
+    // 同毫秒并发回收同名文件（不同组各持一份同名曲）会让 copyFileSync 相互覆盖、
+    // 少一份副本且源已删除——先以 wx 独占创建预留目标名（被占用即换序号重试）再复制，
+    // 复制失败删除预留位后上抛（不残留空文件）。
     const timestamp = new Date().getTime();
-    const targetPath = safeJoin(recycleDir, `${timestamp}_${safeName}`);
+    let targetPath = null;
+    try {
+      for (let seq = 0; targetPath === null; seq += 1) {
+        const candidate = safeJoin(
+          recycleDir,
+          seq === 0 ? `${timestamp}_${safeName}` : `${timestamp}_${seq}_${safeName}`
+        );
+        try {
+          fs.writeFileSync(candidate, "", { flag: "wx" });
+          targetPath = candidate;
+        } catch (e) {
+          if (!e || e.code !== "EEXIST") throw e;
+        }
+      }
+      fs.copyFileSync(sourcePath, targetPath);
+    } catch (copyErr) {
+      if (targetPath) {
+        try {
+          fs.unlinkSync(targetPath);
+        } catch (_) { /* 预留位清理失败不影响错误上抛 */ }
+      }
+      throw copyErr;
+    }
 
     // 移动文件 (先复制后删除；F8：unlink 失败——如 Windows 句柄占用——时补偿删除
     // 刚复制出的目标副本再上抛 500，避免回收站残留孤儿副本、客户端重试再叠加)
-    fs.copyFileSync(sourcePath, targetPath);
     try {
       fs.unlinkSync(sourcePath);
     } catch (unlinkErr) {

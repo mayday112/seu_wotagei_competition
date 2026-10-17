@@ -64,14 +64,18 @@ function resolveValue(v) {
   return typeof v === "function" ? v() : v;
 }
 
-/** Element | 选择器 → 节点；":host" = hostEl 自身；选择器先 hostEl 后 document */
+/** Element | 选择器 → 节点；":host" = hostEl 自身；选择器先 hostEl 后 document。
+ * 非字符串入参仅接受真实 DOM 节点（nodeType 为数字）——编排 props 是用户自由 JSON，
+ * 数字/普通对象原样放行会在交互期以 TypeError 报废组件（paint 写 textContent 等） */
 function resolveNode(host, ref) {
   if (!ref) return null;
-  if (typeof ref !== "string") return ref;
-  if (ref === ":host") return host || null;
-  const inner = host && typeof host.querySelector === "function" ? host.querySelector(ref) : null;
-  if (inner) return inner;
-  return typeof document !== "undefined" ? document.querySelector(ref) : null;
+  if (typeof ref === "string") {
+    if (ref === ":host") return host || null;
+    const inner = host && typeof host.querySelector === "function" ? host.querySelector(ref) : null;
+    if (inner) return inner;
+    return typeof document !== "undefined" ? document.querySelector(ref) : null;
+  }
+  return ref && typeof ref.nodeType === "number" ? ref : null;
 }
 
 /** 池元素 → 展示文本：字符串原样，对象取 name / label */

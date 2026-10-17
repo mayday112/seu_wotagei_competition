@@ -29,6 +29,25 @@ import { applyEnhancements } from "./enhance.js";
 const THEME_ID = "neon";
 const THEME_STORAGE_KEY = "ystage:theme";
 
+// localStorage 守卫（与 head 启动脚本的 try/catch 同纪律）：禁用存储的浏览器
+//（隐私模式/企业策略）访问 localStorage 属性本身抛 SecurityError，apply 在
+// 装配同步窗口内抛错会让本插件注册中断——主题从管理页消失且服务端对账不再运行
+function readThemeStorage() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (e) {
+    return null; // 读失败视同无本机记忆（"default"）
+  }
+}
+
+function writeThemeStorage(value) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, value);
+  } catch (e) {
+    // 写失败静默跳过：本机记忆缺失，服务端对账路径仍生效
+  }
+}
+
 /** 从路径解出页面 id（"/"、"/index.html" 归一为 home，与内核 loader 同规则） */
 function currentPageId() {
   const m = location.pathname.match(/^\/m\/([a-z0-9_-]+)/i);
@@ -132,7 +151,7 @@ export default {
     ctx.ui.registerComponent("theme:neon", createThemePreview);
 
     // 同步初判（无 FOUC）：本地记忆为 neon → 立即激活 + 结构增强（复现样例版式）
-    if (localStorage.getItem(THEME_STORAGE_KEY) === THEME_ID) {
+    if (readThemeStorage() === THEME_ID) {
       setActive(true);
       applyEnhancements(page);
     }
@@ -145,9 +164,9 @@ export default {
         if (!data || typeof data.active !== "string") return;
         // 本机无记忆（getItem 为 null）视同 "default"：与全新浏览器 + 服务端默认主题的
         // 组合对齐，避免首访被无意义整页 reload 一次（刷新后收敛但首帧已渲染）
-        const local = localStorage.getItem(THEME_STORAGE_KEY) ?? "default";
+        const local = readThemeStorage() ?? "default";
         if (data.active === local) return;
-        localStorage.setItem(THEME_STORAGE_KEY, data.active);
+        writeThemeStorage(data.active);
         if (data.active === THEME_ID) {
           applyEnhancements(page);
           setActive(true);

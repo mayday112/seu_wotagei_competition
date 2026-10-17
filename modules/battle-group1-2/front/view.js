@@ -924,6 +924,20 @@ function showWinnerAnnouncement(winnerName) {
   }, 3000);
 }
 
+// HTML 转义：选手名可经设置页 /api/player2 等接口被任意局域网客户端改写，
+// 插入 innerHTML 前须转义（同 rank 页 escapeHtml 纪律）
+const HTML_ESCAPES = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch]);
+}
+
 // 显示最终获胜者提示
 function showFinalWinnerAnnouncement(winnerName) {
   const announcement = document.createElement("div");
@@ -932,7 +946,7 @@ function showFinalWinnerAnnouncement(winnerName) {
   announcement.style.border = "4px solid #ffd700";
   announcement.style.padding = "30px 50px";
   announcement.style.fontSize = "36px";
-  announcement.innerHTML = `${icon("trophy", { size: 36 })} 恭喜 <strong>${winnerName}</strong> 成为第二章节冠军! ${icon("trophy", { size: 36 })}<br><small>5秒后自动跳转到排名页面</small>`;
+  announcement.innerHTML = `${icon("trophy", { size: 36 })} 恭喜 <strong>${escapeHtml(winnerName)}</strong> 成为第二章节冠军! ${icon("trophy", { size: 36 })}<br><small>5秒后自动跳转到排名页面</small>`;
   document.body.appendChild(announcement);
 
   // 5秒后跳转到排名页面

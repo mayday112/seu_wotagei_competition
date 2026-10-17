@@ -31,6 +31,25 @@ export default {
         const { signal } = controller;
         const STORAGE_KEY = "ystage:theme";
 
+        // localStorage 守卫：禁用存储的浏览器（隐私模式/企业策略）访问 localStorage
+        // 属性本身抛 SecurityError——本页是主题切换的兜底入口，初始化抛错会让主题卡
+        // 全部不渲染、切换路径抛错会让刷新不执行
+        function readThemeStorage() {
+          try {
+            return localStorage.getItem(STORAGE_KEY);
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function writeThemeStorage(value) {
+          try {
+            localStorage.setItem(STORAGE_KEY, value);
+          } catch (e) {
+            // 写失败静默：服务端主题已切换成功，刷新后按服务端为准
+          }
+        }
+
         homeBtn.addEventListener("click", () => {
           window.location.href = "/m/home";
         }, { signal });
@@ -52,7 +71,7 @@ export default {
             });
           } catch (e) {
             // 网络失败（服务端不可达）→ 本机单写兜底，刷新后按本机偏好显示
-            localStorage.setItem(STORAGE_KEY, id);
+            writeThemeStorage(id);
             setStatus(`服务端不可达（${e.message}），已仅在本机生效，即将刷新…`, true);
             setTimeout(() => window.location.reload(), 850);
             return;
@@ -62,7 +81,7 @@ export default {
             setStatus(`服务端拒绝了该主题（HTTP ${res.status}），未做更改`, true);
             return;
           }
-          localStorage.setItem(STORAGE_KEY, id);
+          writeThemeStorage(id);
           setStatus(`已切换为「${id === "default" ? "默认主题" : id}」，即将刷新…`);
           setTimeout(() => window.location.reload(), 550);
         }
@@ -84,7 +103,7 @@ export default {
         }
 
         (async () => {
-          let active = localStorage.getItem(STORAGE_KEY) || "default";
+          let active = readThemeStorage() || "default";
           let serverOk = false;
           try {
             const data = await ctx2.api.get("/api/theme/active");
