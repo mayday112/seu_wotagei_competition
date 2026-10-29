@@ -14,26 +14,26 @@
   <body>
     <div class="container">
       <header>
-        <h1>Y.Stage 4 设置中心</h1>
-        <p class="subtitle">管理选手、技能和奖励数据</p>
+        <h1 data-i18n="setting.title">Y.Stage 4 设置中心</h1>
+        <p class="subtitle" data-i18n="setting.subtitle">管理选手、技能和奖励数据</p>
       </header>
 
       <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="players">选手管理</button>
-        <button class="tab-btn" data-tab="tricks">技能管理</button>
-        <button class="tab-btn" data-tab="awards">奖励管理</button>
-        <button class="tab-btn" data-tab="features">功能开关</button>
-        <button class="tab-btn" data-tab="musics">音乐导入</button>
+        <button class="tab-btn active" data-tab="players" data-i18n="setting.tabs.players">选手管理</button>
+        <button class="tab-btn" data-tab="tricks" data-i18n="setting.tabs.tricks">技能管理</button>
+        <button class="tab-btn" data-tab="awards" data-i18n="setting.tabs.awards">奖励管理</button>
+        <button class="tab-btn" data-tab="features" data-i18n="setting.tabs.features">功能开关</button>
+        <button class="tab-btn" data-tab="musics" data-i18n="setting.tabs.musics">音乐导入</button>
       </nav>
 
       <main>
         <!-- 选手管理面板 -->
         <section id="players-panel" class="tab-panel active">
           <div class="section-header">
-            <h2>选手管理</h2>
+            <h2 data-i18n="setting.tabs.players">选手管理</h2>
             <select id="player-file-select" title="选择选手数据文件" aria-label="选择选手数据文件">
-              <option value="player1">加组选手 (player1.json)</option>
-              <option value="player2">内组选手 (player2.json)</option>
+              <option value="player1" data-i18n="setting.playerSource.player1">加组选手 (player1.json)</option>
+              <option value="player2" data-i18n="setting.playerSource.player2">内组选手 (player2.json)</option>
             </select>
           </div>
 
@@ -43,24 +43,24 @@
                （原 players 面板靠 .reversed 反向排列，已随 grid 化移除）。 -->
           <div class="data-container grid-split">
             <div class="data-list">
-              <h3>当前选手列表</h3>
+              <h3 data-i18n="setting.currentPlayerList">当前选手列表</h3>
               <ul id="player-list"></ul>
               
               <!-- 将保存按钮移到选手列表下方 -->
               <div class="action-buttons">
-                <button id="save-players-btn" class="primary-action-btn">保存更改</button>
+                <button id="save-players-btn" class="primary-action-btn" data-i18n="setting.saveChanges">保存更改</button>
               </div>
             </div>
             <div class="data-editor">
-              <h3>选手编辑</h3>
+              <h3 data-i18n="setting.playerEdit">选手编辑</h3>
               <form id="player-form">
                 <div class="form-group">
-                  <label for="player-name">选手名称:</label>
+                  <label for="player-name" data-i18n="setting.playerName">选手名称:</label>
                   <input type="text" id="player-name" required />
                 </div>
                 <div class="form-buttons">
-                  <button type="submit">添加选手</button>
-                  <button type="button" id="cancel-player-edit">取消</button>
+                  <button type="submit" data-i18n="setting.addPlayer">添加选手</button>
+                  <button type="button" id="cancel-player-edit" data-i18n="common.cancel">取消</button>
                 </div>
               </form>
               
@@ -69,25 +69,25 @@
                 <div class="import-header">
                   <label for="import-players-file" class="import-label">
                     <span class="import-icon"></span>
-                    以TXT文件批量导入选手
+                    <span data-i18n="setting.importTxtPlayer">以TXT文件批量导入选手</span>
                   </label>
                   <input type="file" id="import-players-file" class="hidden-file-input" accept=".txt" />
                 </div>
                 <div class="drop-zone">
-                  <p class="drop-message">拖放TXT文件到这里</p>
-                  <p class="import-hint">每行一个选手名称</p>
+                  <p class="drop-message" data-i18n="setting.dropTxt">拖放TXT文件到这里</p>
+                  <p class="import-hint" data-i18n="setting.onePerLinePlayer">每行一个选手名称</p>
                 </div>
                 <!-- 添加导入模式选择 -->
                 <div class="import-mode">
-                  <p class="mode-title">导入模式：</p>
+                  <p class="mode-title" data-i18n="setting.importMode">导入模式：</p>
                   <div class="radio-group">
                     <label class="radio-label">
                       <input type="radio" name="import-mode" value="append" checked>
-                      <span class="radio-text">添加到现有列表</span>
+                      <span class="radio-text" data-i18n="setting.appendMode">添加到现有列表</span>
                     </label>
                     <label class="radio-label">
                       <input type="radio" name="import-mode" value="replace">
-                      <span class="radio-text">替换现有列表</span>
+                      <span class="radio-text" data-i18n="setting.replaceMode">替换现有列表</span>
                     </label>
                   </div>
                 </div>
@@ -100,10 +100,10 @@
         <!-- 技能管理面板 -->
         <section id="tricks-panel" class="tab-panel">
           <div class="section-header">
-            <h2>技能管理</h2>
+            <h2 data-i18n="setting.tabs.tricks">技能管理</h2>
             <select id="trick-file-select" title="选择技能数据文件" aria-label="选择技能数据文件">
-              <option value="tricks">加组技能 (tricks.json)</option>
-              <option value="tricks_for_group2">
+              <option value="tricks" data-i18n="setting.trickSource.tricks">加组技能 (tricks.json)</option>
+              <option value="tricks_for_group2" data-i18n="setting.trickSource.tricks_for_group2">
                 内组技能 (tricks_for_group2.json)
               </option>
             </select>
@@ -111,23 +111,23 @@
 
           <div class="data-container grid-split">
             <div class="data-list">
-              <h3>当前技能列表</h3>
+              <h3 data-i18n="setting.currentTrickList">当前技能列表</h3>
               <ul id="trick-list"></ul>
               <div class="batch-actions">
-                <button id="save-tricks-btn" class="primary-action-btn">保存更改</button>
+                <button id="save-tricks-btn" class="primary-action-btn" data-i18n="setting.saveChanges">保存更改</button>
               </div>
             </div>
 
             <div class="data-editor">
-              <h3>技能编辑</h3>
+              <h3 data-i18n="setting.trickEdit">技能编辑</h3>
               <form id="trick-form">
                 <div class="form-group">
-                  <label for="trick-name">技能名称:</label>
+                  <label for="trick-name" data-i18n="setting.trickName">技能名称:</label>
                   <input type="text" id="trick-name" required />
                 </div>
                 <div class="form-buttons">
-                  <button type="submit">添加技能</button>
-                  <button type="button" id="cancel-trick-edit">取消</button>
+                  <button type="submit" data-i18n="setting.addTrick">添加技能</button>
+                  <button type="button" id="cancel-trick-edit" data-i18n="common.cancel">取消</button>
                 </div>
               </form>
               
@@ -136,25 +136,25 @@
                 <div class="import-header">
                   <label for="import-tricks-file" class="import-label">
                     <span class="import-icon"></span>
-                    以TXT文件批量导入技能
+                    <span data-i18n="setting.importTxtTrick">以TXT文件批量导入技能</span>
                   </label>
                   <input type="file" id="import-tricks-file" class="hidden-file-input" accept=".txt" />
                 </div>
                 <div class="drop-zone">
-                  <p class="drop-message">拖放TXT文件到这里</p>
-                  <p class="import-hint">每行一个技能名称</p>
+                  <p class="drop-message" data-i18n="setting.dropTxt">拖放TXT文件到这里</p>
+                  <p class="import-hint" data-i18n="setting.onePerLineTrick">每行一个技能名称</p>
                 </div>
                 <!-- 添加导入模式选择 -->
                 <div class="import-mode">
-                  <p class="mode-title">导入模式：</p>
+                  <p class="mode-title" data-i18n="setting.importMode">导入模式：</p>
                   <div class="radio-group">
                     <label class="radio-label">
                       <input type="radio" name="trick-import-mode" value="append" checked>
-                      <span class="radio-text">添加到现有列表</span>
+                      <span class="radio-text" data-i18n="setting.appendMode">添加到现有列表</span>
                     </label>
                     <label class="radio-label">
                       <input type="radio" name="trick-import-mode" value="replace">
-                      <span class="radio-text">替换现有列表</span>
+                      <span class="radio-text" data-i18n="setting.replaceMode">替换现有列表</span>
                     </label>
                   </div>
                 </div>
@@ -166,24 +166,24 @@
         <!-- 奖励管理面板 -->
         <section id="awards-panel" class="tab-panel">
           <div class="section-header">
-            <h2>一年内组奖励管理</h2>
+            <h2 data-i18n="setting.tabs.awards">一年内组奖励管理</h2>
           </div>
 
           <div class="data-container grid-split">
             <div class="data-list">
-              <h3>当前奖励列表</h3>
+              <h3 data-i18n="setting.currentAwardList">当前奖励列表</h3>
               <ul id="award-list"></ul>
               <div class="batch-actions">
-                <button id="add-award-btn">添加奖励</button>
-                <button id="save-awards-btn">保存更改</button>
+                <button id="add-award-btn" data-i18n="setting.addAward">添加奖励</button>
+                <button id="save-awards-btn" data-i18n="setting.saveChanges">保存更改</button>
               </div>
             </div>
 
             <div class="data-editor">
-              <h3>一年内组奖励编辑</h3>
+              <h3 data-i18n="setting.awardEdit">一年内组奖励编辑</h3>
               <form id="award-form">
                 <div class="form-group">
-                  <label for="award-rank">排名:</label>
+                  <label for="award-rank" data-i18n="setting.awardRank">排名:</label>
                   <input
                     type="number"
                     id="award-rank"
@@ -193,16 +193,16 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label for="award-name">奖励名称:</label>
+                  <label for="award-name" data-i18n="setting.awardName">奖励名称:</label>
                   <input type="text" id="award-name" required />
                 </div>
                 <div class="form-group">
-                  <label for="award-description">奖励描述:</label>
+                  <label for="award-description" data-i18n="setting.awardDesc">奖励描述:</label>
                   <textarea id="award-description" rows="3" required></textarea>
                 </div>
                 <div class="form-buttons">
-                  <button type="submit">保存</button>
-                  <button type="button" id="cancel-award-edit">取消</button>
+                  <button type="submit" data-i18n="common.save">保存</button>
+                  <button type="button" id="cancel-award-edit" data-i18n="common.cancel">取消</button>
                 </div>
               </form>
             </div>
@@ -212,15 +212,15 @@
         <!-- 音乐导入面板 -->
         <section id="features-panel" class="tab-panel">
           <div class="section-header">
-            <h2>功能开关</h2>
+            <h2 data-i18n="setting.featuresTitle">功能开关</h2>
           </div>
           <!-- 功能开关卡片流：布局由 /web/components/grid.css 的 .grid-cards 提供
                （宽屏多列、窄屏自动单列；保存按钮跨满整行，见 style.css） -->
           <div class="feature-switches grid-cards">
             <div class="feature-item">
               <div class="feature-text">
-                <h3>一年加组对战 - 抽取动作</h3>
-                <p>控制"一年加组对战"界面的抽取动作按钮及抽取结果显示区域。</p>
+                <h3 data-i18n="setting.group1DrawTrickTitle">一年加组对战 - 抽取动作</h3>
+                <p data-i18n="setting.group1DrawTrickDesc">控制"一年加组对战"界面的抽取动作按钮及抽取结果显示区域。</p>
               </div>
               <label class="switch">
                 <input type="checkbox" id="toggle-group1-draw-trick" title="一年加组对战抽取动作开关" aria-label="一年加组对战抽取动作开关" checked />
@@ -230,8 +230,8 @@
 
             <div class="feature-item">
               <div class="feature-text">
-                <h3>一年内组比赛 - 抽取动作</h3>
-                <p>控制"一年内组比赛"界面的抽取动作按钮及当前抽取动作显示。</p>
+                <h3 data-i18n="setting.group2DrawTrickTitle">一年内组比赛 - 抽取动作</h3>
+                <p data-i18n="setting.group2DrawTrickDesc">控制"一年内组比赛"界面的抽取动作按钮及当前抽取动作显示。</p>
               </div>
               <label class="switch">
                 <input type="checkbox" id="toggle-group2-draw-trick" title="一年内组比赛抽取动作开关" aria-label="一年内组比赛抽取动作开关" checked />
@@ -241,18 +241,18 @@
 
             <div class="feature-item">
               <div class="feature-text">
-                <h3>Drag式比赛 - 总人数</h3>
-                <p>设置Drag式淘汰赛的参赛总人数（2~32，默认8人，会根据实际选手数量自动调整）。</p>
+                <h3 data-i18n="setting.dragCountTitle">Drag式比赛 - 总人数</h3>
+                <p data-i18n="setting.dragCountDesc">设置Drag式淘汰赛的参赛总人数（2~32，默认8人，会根据实际选手数量自动调整）。</p>
               </div>
               <div class="drag-count-setting">
                 <input type="number" id="drag-total-count" min="2" max="32" value="8" step="2" title="Drag式比赛总人数" aria-label="Drag式比赛总人数" />
-                <span class="count-hint">人</span>
+                <span class="count-hint" data-i18n="setting.dragCountUnit">人</span>
               </div>
             </div>
             <div class="feature-item">
               <div class="feature-text">
-                <h3>Drag式比赛 - 比赛模式保留背景图</h3>
-                <p>开启后，进入比赛模式时保留页面背景图，仅隐藏UI控件。</p>
+                <h3 data-i18n="setting.dragKeepBgTitle">Drag式比赛 - 比赛模式保留背景图</h3>
+                <p data-i18n="setting.dragKeepBgDesc">开启后，进入比赛模式时保留页面背景图，仅隐藏UI控件。</p>
               </div>
               <label class="switch">
                 <input type="checkbox" id="toggle-drag-keep-bg" title="Drag比赛模式保留背景图开关" aria-label="Drag比赛模式保留背景图开关" checked />
@@ -261,8 +261,8 @@
             </div>
             <div class="feature-item">
               <div class="feature-text">
-                <h3>Drag式比赛 - 对阵树式四强双败赛</h3>
-                <p>开启后，Drag式淘汰赛切换为4人双败淘汰赛制：选手需输两场才被淘汰，败者组获胜者可与胜者组冠军争夺总冠军。</p>
+                <h3 data-i18n="setting.dragDoubleElimTitle">Drag式比赛 - 对阵树式四强双败赛</h3>
+                <p data-i18n="setting.dragDoubleElimDesc">开启后，Drag式淘汰赛切换为4人双败淘汰赛制：选手需输两场才被淘汰，败者组获胜者可与胜者组冠军争夺总冠军。</p>
               </div>
               <label class="switch">
                 <input type="checkbox" id="toggle-drag-double-elim" title="对阵树式四强双败赛开关" aria-label="对阵树式四强双败赛开关" />
@@ -271,18 +271,18 @@
             </div>
 
             <div class="action-buttons">
-              <button id="save-feature-toggles-btn" class="primary-action-btn">保存开关设置</button>
+              <button id="save-feature-toggles-btn" class="primary-action-btn" data-i18n="setting.saveFeatures">保存开关设置</button>
             </div>
           </div>
         </section>
 
         <section id="musics-panel" class="tab-panel">
           <div class="section-header">
-            <h2>音乐导入管理</h2>
+            <h2 data-i18n="setting.tabs.musics">音乐导入管理</h2>
           </div>
           <div class="music-import-intro">
-            <p>在此页面可以批量导入音乐文件到不同组别。更详细的导入功能请使用专用页面：</p>
-            <button id="goto-music-import-btn" class="special-btn">
+            <p data-i18n="setting.musicsIntro">在此页面可以批量导入音乐文件到不同组别。更详细的导入功能请使用专用页面：</p>
+            <button id="goto-music-import-btn" class="special-btn" data-i18n="setting.gotoMusicImport">
               进入音乐导入页面
             </button>
           </div>
@@ -292,7 +292,7 @@
       <div id="status-message"></div>
 
       <div class="navigation">
-        <button id="home-btn">返回主页</button>
+        <button id="home-btn" data-i18n="ranking.backHome">返回主页</button>
       </div>
     </div>
 

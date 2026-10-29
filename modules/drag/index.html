@@ -22,11 +22,11 @@
     <div class="app-wrapper">
       <!-- 顶部控制栏 -->
       <header class="control-bar">
-        <h1>Drag式比赛 <span id="mode-badge" class="mode-badge hidden">双败淘汰</span></h1>
+        <h1><span data-i18n="drag.title">Drag式比赛</span> <span id="mode-badge" class="mode-badge hidden" data-i18n="drag.doubleElimBadge">双败淘汰</span></h1>
         <div class="header-right">
           <div class="source-switch">
-            <button id="switch-player1-btn" class="source-btn active">加组</button>
-            <button id="switch-player2-btn" class="source-btn">内组</button>
+            <button id="switch-player1-btn" class="source-btn active" data-i18n="drag.player1">加组</button>
+            <button id="switch-player2-btn" class="source-btn" data-i18n="drag.player2">内组</button>
           </div>
           <div class="source-switch" id="music-source-switch">
             <button id="switch-music-old-btn" class="source-btn active">1year+</button>
@@ -34,10 +34,10 @@
             <button id="switch-music-ex-btn" class="source-btn">1year+EX</button>
           </div>
           <span class="round-label" id="round-label">第1轮</span>
-          <button id="shuffle-btn" class="ctrl-btn shuffle-btn" title="随机排列选手">随机</button>
-          <button id="reset-game-btn" class="ctrl-btn" title="重置比赛">重置</button>
-          <button id="setting-btn" class="ctrl-btn" title="打开设置">设置</button>
-          <button id="home-btn" class="ctrl-btn" title="回到主页">主页</button>
+          <button id="shuffle-btn" class="ctrl-btn shuffle-btn" title="随机排列选手" data-i18n="drag.shuffle">随机</button>
+          <button id="reset-game-btn" class="ctrl-btn" title="重置比赛" data-i18n="drag.reset">重置</button>
+          <button id="setting-btn" class="ctrl-btn" title="打开设置" data-i18n="drag.setting">设置</button>
+          <button id="home-btn" class="ctrl-btn" title="回到主页" data-i18n="drag.home">主页</button>
         </div>
       </header>
 
@@ -54,18 +54,18 @@
       <!-- 音乐控制栏（布局：.grid-split 宽屏左右 / 窄屏堆叠，零媒体查询） -->
       <div class="music-bar grid-split">
         <div class="music-info">
-          <span class="music-label">当前音乐</span>
+          <span class="music-label" data-i18n="tournament.currentMusic">当前音乐</span>
           <span id="music-display" class="music-display">—</span>
         </div>
         <div class="music-actions">
-          <button id="draw-music-btn" class="draw-music-btn">抽取音乐</button>
-          <button id="start-battle-btn" class="start-battle-btn" disabled>开始比赛</button>
+          <button id="draw-music-btn" class="draw-music-btn" data-i18n="tournament.drawMusic">抽取音乐</button>
+          <button id="start-battle-btn" class="start-battle-btn" disabled data-i18n="tournament.startBattle">开始比赛</button>
         </div>
       </div>
 
       <!-- 底部状态栏 -->
       <footer class="status-bar">
-        <span id="status-hint">拖拽胜者至内侧方框以晋级</span>
+        <span id="status-hint" data-i18n="drag.hint">拖拽胜者至内侧方框以晋级</span>
       </footer>
     </div>
 
@@ -75,19 +75,19 @@
     <!-- 启动弹窗 -->
     <div id="startup-modal" class="modal-overlay">
       <div class="modal-box">
-        <h2 class="modal-title">对阵树式四强双败赛</h2>
-        <p class="modal-desc">
+        <h2 class="modal-title" data-i18n="drag.modalTitle">对阵树式四强双败赛</h2>
+        <p class="modal-desc" data-i18n="drag.modalDesc">
           开启后，标准淘汰赛进行到剩余 <strong>4 人</strong> 时，将自动切换为双败淘汰赛制：
           选手需输两场才被淘汰，败者组获胜者可与胜者组冠军争夺总冠军。
         </p>
         <div class="modal-toggle">
-          <span class="modal-toggle-label">四强双败赛</span>
+          <span class="modal-toggle-label" data-i18n="drag.modalToggle">四强双败赛</span>
           <label class="switch">
             <input type="checkbox" id="modal-double-elim-toggle" />
             <span class="slider"></span>
           </label>
         </div>
-        <button id="modal-close-btn" class="modal-close-btn">进入比赛</button>
+        <button id="modal-close-btn" class="modal-close-btn" data-i18n="drag.startBtn">进入比赛</button>
       </div>
     </div>
 

@@ -39,14 +39,17 @@ export default {
         // 设置类入口不混入赛制卡片，单独渲染为底部通栏入口，避免"工具混进玩法"的认知冲突
         const GROUPS = [
           {
+            key: "select.groups.solo",
             label: "单人赛",
             ids: ["battle-group1", "battle-group1-2", "battle-group2", "battle-group2-2"],
           },
           {
+            key: "select.groups.team",
             label: "团体与表演",
             ids: ["group-battle", "drag", "music-draw"],
           },
           {
+            key: "select.groups.custom",
             label: "自制赛制",
             ids: ["game-composer", "custom-stage"],
           },
@@ -79,13 +82,15 @@ export default {
 
               if (items.length === 0) return;
 
+              const groupTitle = ctx2 && ctx2.i18n ? ctx2.i18n.t(group.key, group.label) : group.label;
+
               const section = document.createElement("section");
               section.className = "mode-group";
-              section.setAttribute("aria-label", group.label);
+              section.setAttribute("aria-label", groupTitle);
 
               const label = document.createElement("h3");
               label.className = "group-label";
-              label.textContent = group.label;
+              label.textContent = groupTitle;
               section.appendChild(label);
 
               const grid = document.createElement("div");
@@ -95,8 +100,10 @@ export default {
                 const card = document.createElement("button");
                 card.type = "button";
                 card.className = `mode-card ${colorClass[m.id] || "card--neutral"}`;
-                card.setAttribute("aria-label", m.description || m.name);
-                card.title = m.description || "";
+                const translatedName = ctx2 && ctx2.i18n ? ctx2.i18n.t(`modules.${m.id}.name`, m.name) : m.name;
+                const translatedDesc = ctx2 && ctx2.i18n ? ctx2.i18n.t(`modules.${m.id}.desc`, m.description || "") : (m.description || "");
+                card.setAttribute("aria-label", translatedDesc || translatedName);
+                card.title = translatedDesc;
 
                 const iconNode = document.createElement("span");
                 iconNode.className = "card-icon";
@@ -110,11 +117,11 @@ export default {
 
                 const name = document.createElement("span");
                 name.className = "card-name";
-                name.textContent = m.name;
+                name.textContent = translatedName;
 
                 const desc = document.createElement("span");
                 desc.className = "card-desc";
-                desc.textContent = m.description || "";
+                desc.textContent = translatedDesc;
 
                 body.appendChild(name);
                 body.appendChild(desc);
@@ -143,7 +150,9 @@ export default {
               const footerBtn = document.createElement("button");
               footerBtn.type = "button";
               footerBtn.className = "setting-footer-btn";
-              footerBtn.title = settingMod.description || "";
+              const settingName = ctx2 && ctx2.i18n ? ctx2.i18n.t("modules.setting.name", settingMod.name) : settingMod.name;
+              const settingDesc = ctx2 && ctx2.i18n ? ctx2.i18n.t("modules.setting.desc", settingMod.description || "") : (settingMod.description || "");
+              footerBtn.title = settingDesc;
 
               const iconNode = document.createElement("span");
               iconNode.className = "btn-icon";
@@ -153,7 +162,7 @@ export default {
               );
 
               const label = document.createElement("span");
-              label.textContent = settingMod.name;
+              label.textContent = settingName;
 
               footerBtn.appendChild(iconNode);
               footerBtn.appendChild(label);
@@ -164,8 +173,9 @@ export default {
             }
 
             if (!container.children.length) {
+              const emptyText = ctx2 && ctx2.i18n ? ctx2.i18n.t("select.empty", "暂无赛制，请先在 modules/modules.json 中注册模块") : "暂无赛制，请先在 modules/modules.json 中注册模块";
               container.innerHTML =
-                "<p class='empty-hint'>暂无赛制，请先在 modules/modules.json 中注册模块</p>";
+                `<p class='empty-hint'>${emptyText}</p>`;
             }
           })
           .catch(() => {

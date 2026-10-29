@@ -12,10 +12,10 @@
  * 只依赖纯 JS，零 DOM/Fetch，保证可在 node 中运行。
  */
 
-// 已知内置服务白名单（后端 F6 同款防护，前端侧：ui/api/state）。
+// 已知内置服务白名单（后端 F6 同款防护，前端侧：ui/api/state/i18n）。
 // cordis K4：inject 引用未提供的服务 → fiber 永久 PENDING，await ctx.plugin() 死锁，
 // 插件名拼写错（如 "uui"）会卡死整个装配。挂载前校验，非法条目跳过并计入 errors。
-export const KNOWN_SERVICES = ["ui", "api", "state"];
+export const KNOWN_SERVICES = ["ui", "api", "state", "i18n"];
 
 // 返回 exported.inject 中不在白名单内的服务名（inject 兼容 string 与 array 两种 cordis 形式）
 export function unknownInjects(exported) {

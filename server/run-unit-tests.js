@@ -35,6 +35,8 @@ const FILES = [
   // L1 共享库补充：定时器登记表（组件卸载安全）+ body class 引用计数开关
   "web/lib/timers.test.js",
   "web/lib/body-class.test.js",
+  // L1 共享库补充：国际化多语言核心
+  "web/lib/i18n.test.js",
 ];
 
 let failed = 0;

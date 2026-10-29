@@ -127,10 +127,10 @@ test("primaryEntry：本模块条目优先，缺省回退首条", async () => {
   assert.strictEqual(primaryEntry([], "drag"), null);
 });
 
-test("unknownInjects：string/array inject，白名单 ui/api/state", async () => {
+test("unknownInjects：string/array inject，白名单 ui/api/state/i18n", async () => {
   const { unknownInjects } = await importLoader();
-  assert.deepStrictEqual(unknownInjects({ inject: ["ui", "api"] }), []);
-  assert.deepStrictEqual(unknownInjects({ inject: "ui" }), []);
+  assert.deepStrictEqual(unknownInjects({ inject: ["ui", "api", "i18n"] }), []);
+  assert.deepStrictEqual(unknownInjects({ inject: "i18n" }), []);
   assert.deepStrictEqual(unknownInjects({ inject: ["ui", "server"] }), ["server"]);
   assert.deepStrictEqual(unknownInjects({ inject: ["uui"] }), ["uui"]);
   assert.deepStrictEqual(unknownInjects({}), []);

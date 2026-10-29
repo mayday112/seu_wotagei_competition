@@ -13,7 +13,7 @@
   <body>
     <div class="container">
       <header>
-        <h1>一年加组对战</h1>
+        <h1 data-i18n="battleGroup.profTitle">一年加组对战</h1>
       </header>
       <main>
         <section id="battle-info">
@@ -38,25 +38,25 @@
 
         <section id="actions-section">
           <div class="actions">
-            <button id="draw-players-btn">抽取选手</button>
-            <button id="draw-music-btn">抽取音乐</button>
-            <button id="draw-tricks-btn">抽取动作</button>
-            <button id="play-music-btn">播放音乐</button>
-            <button id="clear-winner-btn">撤消选择胜者</button>
-            <button id="next-round-btn">进入下一轮次</button>
+            <button id="draw-players-btn" data-i18n="tournament.drawPlayers">抽取选手</button>
+            <button id="draw-music-btn" data-i18n="tournament.drawMusic">抽取音乐</button>
+            <button id="draw-tricks-btn" data-i18n="tournament.drawTricks">抽取动作</button>
+            <button id="play-music-btn" data-i18n="tournament.playMusic">播放音乐</button>
+            <button id="clear-winner-btn" data-i18n="tournament.undoWinner">撤消选择胜者</button>
+            <button id="next-round-btn" data-i18n="tournament.nextRound">进入下一轮次</button>
           </div>
         </section>
 
         <!-- 布局：.grid-flow（auto-fit 320px）宽屏并排 / 窄屏堆叠 -->
         <section id="battle-display" class="grid-flow">
           <div class="random-tricks">
-            <h3>随机抽取的动作</h3>
-            <div id="random-tricks-display">请抽取动作</div>
+            <h3 data-i18n="tournament.drawnTricks">随机抽取的动作</h3>
+            <div id="random-tricks-display" data-i18n="tournament.pleaseDrawTrick">请抽取动作</div>
           </div>
 
           <div class="music">
-            <h3>随机抽取的音乐</h3>
-            <p><span id="music-name">音乐名称</span></p>
+            <h3 data-i18n="tournament.drawnMusic">随机抽取的音乐</h3>
+            <p><span id="music-name" data-i18n="tournament.musicName">音乐名称</span></p>
           </div>
         </section>
 

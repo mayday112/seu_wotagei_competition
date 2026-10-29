@@ -23,6 +23,8 @@ import { Context } from "cordis";
 import { installUi } from "./ui.mjs";
 import { installApi } from "./api.mjs";
 import { installState } from "./state.mjs";
+import { installI18n } from "./i18n.mjs";
+import { mountLanguageSwitcher } from "./components/lang-switcher.mjs";
 import {
   moduleIdFromPath,
   parseManifest,
@@ -33,12 +35,13 @@ import {
   unknownInjects,
 } from "./loader.mjs";
 
-/** 创建前端根 Context 并装上三个内置服务（对应后端 createBackendRoot） */
+/** 创建前端根 Context 并装上内置服务（对应后端 createBackendRoot） */
 export function createFrontendRoot() {
   const ctx = new Context();
   installUi(ctx);
   installApi(ctx);
   installState(ctx);
+  installI18n(ctx);
   return ctx;
 }
 
@@ -110,7 +113,21 @@ export async function start() {
   } catch (e) {
     console.error(`[web/kernel] /web/front.json 读取失败（按空清单装配）: ${e.message}`);
   }
-  return assemblePage({ moduleId, manifest, container });
+
+  const result = await assemblePage({ moduleId, manifest, container });
+  const { ctx } = result;
+
+  // 浏览器环境：翻译静态 DOM 节点并挂载右上角语言切换器
+  if (typeof document !== "undefined" && ctx && ctx.i18n) {
+    try {
+      ctx.i18n.translateTree(document.body);
+      mountLanguageSwitcher(ctx);
+    } catch (e) {
+      console.error("[web/kernel] i18n 初始化或语言切换器挂载失败:", e);
+    }
+  }
+
+  return result;
 }
 
 // 浏览器环境自动执行（node 单测 import 本文件时无 document，不会触发）

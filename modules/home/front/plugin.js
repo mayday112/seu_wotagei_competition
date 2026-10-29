@@ -43,7 +43,9 @@ export default {
               const btn = document.createElement("button");
               btn.type = "button";
               btn.className = m.id === "select" ? "start-btn" : "nav-btn";
-              btn.title = m.description || "";
+              const translatedDesc = ctx2 && ctx2.i18n ? ctx2.i18n.t(`modules.${m.id}.desc`, m.description || "") : (m.description || "");
+              const translatedName = ctx2 && ctx2.i18n ? ctx2.i18n.t(`modules.${m.id}.name`, m.name) : m.name;
+              btn.title = translatedDesc;
 
               const iconNode = document.createElement("span");
               iconNode.className = "btn-icon";
@@ -54,7 +56,7 @@ export default {
 
               const label = document.createElement("span");
               label.className = "btn-label";
-              label.textContent = m.name;
+              label.textContent = translatedName;
 
               btn.appendChild(iconNode);
               btn.appendChild(label);

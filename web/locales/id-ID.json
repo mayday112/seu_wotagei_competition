@@ -1,0 +1,45 @@
+{
+  "common": {
+    "confirm": "Konfirmasi",
+    "cancel": "Batal",
+    "back": "Kembali",
+    "save": "Simpan",
+    "reset": "Reset",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "loading": "Memuat...",
+    "success": "Operasi berhasil",
+    "error": "Terjadi kesalahan",
+    "noData": "Tidak ada data"
+  },
+  "home": {
+    "title": "2027 Y.Stage 5",
+    "subtitle": "Selamat datang di panggung kompetisi WOTA-gei Y.Stage 5",
+    "noFeatures": "Tidak ada modul tersedia. Daftarkan modul di modules/modules.json terlebih dahulu",
+    "serverDisconnected": "Tidak dapat terhubung ke server. Harap jalankan 'node server.js' terlebih dahulu"
+  },
+  "modules": {
+    "home": { "name": "Beranda", "desc": "Pintu masuk live stage 2026 Y.Stage 4" },
+    "select": { "name": "Pilih Format", "desc": "Pilihan format: Solo / Tim / Drag" },
+    "setting": { "name": "Pengaturan", "desc": "Kelola peserta, skill, hadiah, dan musik" },
+    "battle-group1": { "name": "Prof (>1 Tahun)", "desc": "Turnamen babak untuk divisi senior" },
+    "battle-group1-2": { "name": "Prof Babak 2", "desc": "Divisi senior babak 2" },
+    "battle-group2": { "name": "Rookies II (<1 Tahun)", "desc": "Turnamen babak untuk divisi pemula" },
+    "battle-group2-2": { "name": "Rookies I (Rookies Babak 2)", "desc": "Divisi pemula babak 2" },
+    "group-battle": { "name": "Pertandingan Tim", "desc": "Turnamen tim 3 lawan 3" },
+    "drag": { "name": "Turnamen Drag", "desc": "Sistem bagan turnamen gugur ganda (double elimination)" },
+    "music-draw": { "name": "Undi Musik", "desc": "Undian musik acak untuk battle" },
+    "music-import": { "name": "Impor Musik", "desc": "Impor file musik secara massal" },
+    "performance": { "name": "Panggung Showcase", "desc": "Panggung showcase & kontrol pintas" },
+    "rank": { "name": "Peringkat Peserta", "desc": "Daftar peringkat peserta individu" },
+    "ranking": { "name": "Papan Peringkat", "desc": "Papan rekor pertandingan" },
+    "team-rank": { "name": "Peringkat Tim", "desc": "Daftar peringkat pertandingan tim" },
+    "games": { "name": "Pusat Game", "desc": "Mini-game seru untuk dancer stik fosfor" },
+    "moving-sth": { "name": "Tantangan Pindah Cyalume", "desc": "Tantangan memindahkan stik fosfor dalam batas waktu" },
+    "movement-teaching": { "name": "Tebak Gerak Koreo", "desc": "Menyampaikan teknik Wotagei tanpa menggunakan tangan" },
+    "plugin-manager": { "name": "Manajer Plugin", "desc": "Pengaturan dan hot-reload modul plugin" },
+    "game-composer": { "name": "Visual Composer", "desc": "Susun aturan dan format game baru dengan blok visual" },
+    "custom-stage": { "name": "Panggung Kustom", "desc": "Jalankan panggung kompetisi hasil rancangan composer" },
+    "theme-manager": { "name": "Manajer Tema", "desc": "Ganti tema: Default / Neon / Tema kustom" }
+  }
+}

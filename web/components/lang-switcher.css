@@ -1,0 +1,148 @@
+/* web/components/lang-switcher.css */
+
+.ystage-lang-switcher {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
+}
+
+/* 比赛现场模式隐藏 */
+body.battle-mode .ystage-lang-switcher {
+  display: none !important;
+}
+
+/* 主按钮 (Pill Button) */
+.ystage-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(18, 22, 32, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.ystage-lang-btn:hover {
+  background: rgba(28, 35, 52, 0.9);
+  border-color: rgba(99, 179, 237, 0.4);
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(66, 153, 225, 0.25);
+  transform: translateY(-1px);
+}
+
+.ystage-lang-btn:active {
+  transform: translateY(0);
+}
+
+.ystage-lang-btn .ystage-lang-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #90cdf4;
+}
+
+.ystage-lang-btn .ystage-lang-label {
+  letter-spacing: 0.3px;
+}
+
+.ystage-lang-btn .ystage-lang-arrow {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+  color: #a0aec0;
+}
+
+.ystage-lang-switcher.open .ystage-lang-arrow {
+  transform: rotate(180deg);
+}
+
+/* 下拉菜单 */
+.ystage-lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  background: rgba(18, 24, 38, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  animation: ystageFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ystage-lang-switcher.open .ystage-lang-dropdown {
+  display: flex;
+}
+
+@keyframes ystageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 菜单项 */
+.ystage-lang-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.ystage-lang-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.ystage-lang-item.active {
+  background: rgba(66, 153, 225, 0.18);
+  color: #63b3ed;
+  font-weight: 600;
+}
+
+.ystage-lang-item-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ystage-lang-item .ystage-lang-check {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  color: #63b3ed;
+}
+
+.ystage-lang-item.active .ystage-lang-check {
+  opacity: 1;
+}

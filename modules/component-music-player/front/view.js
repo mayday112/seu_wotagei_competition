@@ -221,12 +221,12 @@ export function createMusicPlayer(hostEl, props = {}, ctx) {
     if (p.trigger === undefined && !trigger) {
       trigger = createNode("button", "music-player__default-trigger", bar);
       trigger.type = "button";
-      trigger.textContent = "抽取音乐";
+      trigger.textContent = ctx && ctx.i18n ? ctx.i18n.t("tournament.drawMusic", "抽取音乐") : "抽取音乐";
     }
     if (p.startTrigger === undefined && !startTrigger) {
       startTrigger = createNode("button", "music-player__default-start", bar);
       startTrigger.type = "button";
-      startTrigger.textContent = "播放";
+      startTrigger.textContent = ctx && ctx.i18n ? ctx.i18n.t("tournament.playMusic", "播放") : "播放";
     }
   }
 
@@ -265,7 +265,8 @@ export function createMusicPlayer(hostEl, props = {}, ctx) {
     const text = createNode("div", "battle-start battle-start-text cmp-music__text", root);
     const hint = createNode("div", "click-to-stop cmp-music__hint"); // 与 root 平级：root 隐藏后提示仍在
     if (ov.hintId) hint.id = ov.hintId;
-    hint.textContent = ov.hintText;
+    const defaultHint = ov.hintText || "双击任意位置停止";
+    hint.textContent = ctx && ctx.i18n ? ctx.i18n.t("tournament.stopHint", defaultHint) : defaultHint;
     setHidden(root, true);
     setHidden(hint, true);
     return { root, text, hint };

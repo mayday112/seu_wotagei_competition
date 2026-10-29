@@ -13,22 +13,22 @@
   <body>
     <header>
       <div class="header-buttons">
-        <button id="homeButton">返回主页</button>
-        <button id="battleButton">返回比赛界面</button>
+        <button id="homeButton" data-i18n="ranking.backHome">返回主页</button>
+        <button id="battleButton" data-i18n="ranking.backBattle">返回比赛界面</button>
       </div>
-      <h1>一年内组排名</h1>
+      <h1 data-i18n="ranking.title">一年内组排名</h1>
     </header>
 
     <!-- 主区两栏：布局由 /web/components/grid.css 的 .grid-split 提供
          （宽屏等宽两栏 / 窄屏自动堆叠，零断点；原 flex 25%/65% 固定比例已移除） -->
     <main class="grid-split">
       <section id="playersSection">
-        <h2>选手列表</h2>
+        <h2 data-i18n="ranking.playerList">选手列表</h2>
         <ul id="playersList"></ul>
       </section>
 
       <section id="rankingSection">
-        <h1 style="font-size: 2em">排名</h1>
+        <h1 style="font-size: 2em" data-i18n="ranking.ranks">排名</h1>
         <div id="rankingContainer">
           <div class="rank-position rank-gold" data-rank="1">
             <span class="rank-number">1</span>

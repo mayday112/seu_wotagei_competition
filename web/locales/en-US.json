@@ -1,0 +1,45 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "reset": "Reset",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "success": "Operation successful",
+    "error": "An error occurred",
+    "noData": "No data available"
+  },
+  "home": {
+    "title": "2027 Y.Stage 5",
+    "subtitle": "Welcome to the 2027 Y.Stage 5 Wotagei Competition Arena",
+    "noFeatures": "No available modules. Please register modules in modules/modules.json first",
+    "serverDisconnected": "Unable to connect to server. Please start 'node server.js' first"
+  },
+  "modules": {
+    "home": { "name": "Home", "desc": "2026 Y.Stage 4 Live Entry" },
+    "select": { "name": "Match Formats", "desc": "Select format: Solo / Team / Drag" },
+    "setting": { "name": "Settings", "desc": "Manage players, skills, rewards, and music" },
+    "battle-group1": { "name": "Prof (1 Year+)", "desc": "Chapter tournament for experienced division" },
+    "battle-group1-2": { "name": "Prof Ch. 2", "desc": "Experienced division chapter 2" },
+    "battle-group2": { "name": "Rookies II (<1 Year)", "desc": "Chapter tournament for rookies division" },
+    "battle-group2-2": { "name": "Rookies I (Rookies Ch. 2)", "desc": "Rookies division chapter 2" },
+    "group-battle": { "name": "Team Battle", "desc": "3v3 team tournament" },
+    "drag": { "name": "Drag Tournament", "desc": "Tournament bracket with double elimination" },
+    "music-draw": { "name": "Music Draw", "desc": "Random music roll for battle" },
+    "music-import": { "name": "Music Import", "desc": "Batch import music files" },
+    "performance": { "name": "Showcase", "desc": "Performance & shortcut control stage" },
+    "rank": { "name": "Player Ranks", "desc": "Individual player ranking list" },
+    "ranking": { "name": "Leaderboard", "desc": "Battle record leaderboard" },
+    "team-rank": { "name": "Team Ranks", "desc": "Team tournament ranking list" },
+    "games": { "name": "Game Center", "desc": "Fun mini-games for glowstick dancers" },
+    "moving-sth": { "name": "Timed Cyalume Transfer", "desc": "Timed glowstick relocation challenge" },
+    "movement-teaching": { "name": "Body Language Choreography", "desc": "Express Wotagei techniques without hands" },
+    "plugin-manager": { "name": "Plugin Manager", "desc": "Plugin assembly management & hot reload" },
+    "game-composer": { "name": "Visual Composer", "desc": "Block-based visual game rule composer" },
+    "custom-stage": { "name": "Custom Stage", "desc": "Run custom game stages created in composer" },
+    "theme-manager": { "name": "Theme Manager", "desc": "Switch themes: Default / Neon / Custom themes" }
+  }
+}
