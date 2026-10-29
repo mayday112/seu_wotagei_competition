@@ -15,11 +15,13 @@
  */
 
 import { icon, ICON_NAMES } from "/web/icons.mjs";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "select", // key 必须 = 模块 id，kernel 装配完按它 render
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "select",
       component(el, meta, ctx2) {
@@ -180,8 +182,9 @@ export default {
           })
           .catch(() => {
             if (!container) return;
+            const errText = ctx2 && ctx2.i18n ? ctx2.i18n.t("select.serverDisconnected", "无法连接服务器，请先启动 node server.js") : "无法连接服务器，请先启动 node server.js";
             container.innerHTML =
-              "<p class='empty-hint'>无法连接服务器，请先启动 node server.js</p>";
+              `<p class='empty-hint'>${errText}</p>`;
           });
 
         // 重渲染/卸载时清空动态内容（卡片节点及其监听器一并释放）

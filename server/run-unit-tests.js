@@ -37,6 +37,8 @@ const FILES = [
   "web/lib/body-class.test.js",
   // L1 共享库补充：国际化多语言核心
   "web/lib/i18n.test.js",
+  // 国际化多语言字典校验（中枢与全部模块 3 语一致性）
+  "scripts/check-locales.js",
 ];
 
 let failed = 0;

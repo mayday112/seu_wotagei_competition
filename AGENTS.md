@@ -413,6 +413,38 @@ music-player 的 `play(item)` 为 P15 新增 api（`item ? setItem(item) : 不�
 2. `modules/game-composer/front/layout.mjs` 的 `PALETTE_META` 补一行中文名/描述，并**同步补 `outs` / `ins` 连线词汇表**（P15，`[{name,label}]` 数组；无连线能力/服务类组件为空数组；不补中文名则 palette 显示原始组件名，不补 outs/ins 则连线表单选不到该组件的口子）；
 3. 验证：编辑器 palette 可见可添加 → 预览真挂载 → 保存后 custom-stage 深链可运行；有连线口的组件在编辑器建一条线 → 预览验证联动 → custom-stage 复验；手动禁用该组件插件后复验「插槽留空、页面照常」（降级不崩）。
 
+### 4.6 国际化多语言体系（i18n per modul）
+
+项目支持 `zh-CN`（简体中文）、`en-US`（English）、`id-ID`（Bahasa Indonesia）三语无刷新切换，字典与模块解耦分散存储：
+
+**1. 架构分层**：
+- **公共词条（中枢）**：位于 `web/locales/{en-US,id-ID,zh-CN}.mjs`，仅包含全站共享的前缀词条（如 `common.*`、`tournament.*`、`modules.*`）。
+- **模块私有词条（分模块）**：位于 `modules/<模块id>/front/locales/{index.mjs,en-US.mjs,id-ID.mjs,zh-CN.mjs}`（L2 组件同理，位于 `modules/component-<名>/front/locales/`）。
+- **命名空间规范**：模块字典导出 `NAMESPACE = "<模块id>"`，词条扁平注册到其下。在前端插件中使用 `ctx.i18n.t("<模块id>.<词条名>")` 调用，或在 HTML 模板中使用 `data-i18n="<模块id>.<词条名>"`。
+
+**2. 插件注册模式**：
+前端插件必须声明 `inject: [..., "i18n"]`，并在 `apply(ctx)` 早期调用 `registerLocales(ctx)`：
+```js
+import { registerLocales } from "./locales/index.mjs";
+
+export default {
+  name: "my-feature-front",
+  inject: ["ui", "api", "i18n"],
+  apply(ctx) {
+    registerLocales(ctx);
+    ctx.ui.register({ key: "my-feature", component(el, meta, ctx) { ... } });
+  },
+};
+```
+
+**3. 脚手架与自检**：
+- 新模块脚手架 `node scripts/new-module.js <id> "<名>"` 已内置自动生成三语 locales 与 `registerLocales` 装配。
+- 每次新增或修改文案后，必须运行守门自检：
+  `node scripts/check-locales.js`（已集成至 `node server/run-unit-tests.js` 第 21 项测试）。
+  自检会严格核对中枢及所有 28 组模块字典的叶子键名，三语必须 100% 逐键对称对齐，禁止缺漏。
+
+---
+
 ### 4.5 主题系统与插件组（2026-09-30）：主题 = 插件组，可切换、可自建
 
 一句话：**主题是插件组**（主题核心组件 + 若干成员组件），激活状态系统级存储（SQLite `theme-store`），切换全场屏幕刷新生效；既有页面文件零改动——非激活主题对页面零影响，激活主题经 CSS 覆盖 + 结构增强注入换肤。

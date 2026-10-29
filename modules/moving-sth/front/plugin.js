@@ -18,11 +18,13 @@
  */
 import { initMovingSthGame } from "./game.js";
 import { initMovingSthSettings } from "./settings.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "moving-sth-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "moving-sth", // 必须 = 模块 id
       component(el, meta, componentCtx) {

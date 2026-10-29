@@ -25,6 +25,7 @@
  */
 import { createThemePreview } from "./view.js";
 import { applyEnhancements } from "./enhance.js";
+import { registerLocales } from "./locales/index.mjs";
 
 const THEME_ID = "neon";
 const THEME_STORAGE_KEY = "ystage:theme";
@@ -133,8 +134,9 @@ function setActive(on) {
 
 export default {
   name: "component-theme-neon",
-  inject: ["ui"],
+  inject: ["ui", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     // 内核组件注册表未就绪时优雅降级：不注册、不抛错（theme-manager 据此跳过本主题卡）
     if (typeof ctx.ui.registerComponent !== "function") {
       console.error("[component-theme-neon] ctx.ui.registerComponent 不可用，主题未注册");
@@ -148,12 +150,12 @@ export default {
     ensureStylesheet();
     ensureAmbience(page);
 
-    ctx.ui.registerComponent("theme:neon", createThemePreview);
+    ctx.ui.registerComponent("theme:neon", (host, props) => createThemePreview(host, props, ctx));
 
     // 同步初判（无 FOUC）：本地记忆为 neon → 立即激活 + 结构增强（复现样例版式）
     if (readThemeStorage() === THEME_ID) {
       setActive(true);
-      applyEnhancements(page);
+      applyEnhancements(page, ctx);
     }
 
     // 异步对账：服务端系统级主题（theme-manager 的 PUT 写入）；与本机不一致时
@@ -168,7 +170,7 @@ export default {
         if (data.active === local) return;
         writeThemeStorage(data.active);
         if (data.active === THEME_ID) {
-          applyEnhancements(page);
+          applyEnhancements(page, ctx);
           setActive(true);
         } else {
           location.reload();

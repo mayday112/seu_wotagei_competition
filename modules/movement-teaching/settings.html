@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>体态传技设置 - Y.Stage</title>
+    <title data-i18n="movement-teaching.settingsPageTitle">体态传技设置 - Y.Stage</title>
     <link rel="preload" as="image" href="/resource/images/bg_index.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于页面样式，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -15,20 +15,20 @@
   <body>
     <div class="container">
       <header>
-        <h1>体态传技设置</h1>
-        <p class="subtitle">自定义节拍器和技能列表</p>
+        <h1 data-i18n="movement-teaching.settingsTitle">体态传技设置</h1>
+        <p class="subtitle" data-i18n="movement-teaching.settingsSubtitle">自定义节拍器和技能列表</p>
       </header>
 
       <main>
         <!-- 节拍器设置面板 -->
         <section id="metronome-settings-panel" class="settings-panel">
           <div class="panel-header">
-            <h2>节拍器设置</h2>
+            <h2 data-i18n="movement-teaching.metronomeSettings">节拍器设置</h2>
           </div>
 
           <div class="setting-row">
             <div class="setting-item">
-              <label for="bpm-setting">节拍速度 (BPM):</label>
+              <label for="bpm-setting" data-i18n="movement-teaching.bpmSpeed">节拍速度 (BPM):</label>
               <div class="setting-control">
                 <input
                   type="range"
@@ -44,42 +44,43 @@
 
             <div class="metronome-controls">
               <button id="test-metronome-btn" class="settings-btn glow-btn">
-                <span class="icon"></span> 试听
+                <span class="icon"></span> <span data-i18n="movement-teaching.testListen">试听</span>
               </button>
               <button
                 id="stop-metronome-btn"
                 class="settings-btn glow-btn"
                 disabled
               >
-                <span class="icon"></span> 停止
+                <span class="icon"></span> <span data-i18n="movement-teaching.stop">停止</span>
               </button>
             </div>
           </div>
 
           <div class="metronome-pattern">
             <p>
-              四四拍: <span class="beat light">轻</span>
-              <span class="beat light">轻</span>
-              <span class="beat light">轻</span>
-              <span class="beat heavy">重</span>
+              <span data-i18n="movement-teaching.fourFourBeat">四四拍: </span><span class="beat light" data-i18n="movement-teaching.beatLight">轻</span>
+              <span class="beat light" data-i18n="movement-teaching.beatLight">轻</span>
+              <span class="beat light" data-i18n="movement-teaching.beatLight">轻</span>
+              <span class="beat heavy" data-i18n="movement-teaching.beatHeavy">重</span>
             </p>
           </div>
         </section>
 
         <section id="settings-panel" class="settings-panel">
           <div class="panel-header">
-            <h2>技能管理</h2>
+            <h2 data-i18n="movement-teaching.skillManagement">技能管理</h2>
           </div>
 
           <!-- 技能列表 + 编辑表单：.grid-split（auto-fit）宽屏左右两栏 / 窄屏单列，零媒体查询 -->
           <div class="data-container grid-split">
             <div class="data-list">
-              <h3>当前技能列表</h3>
+              <h3 data-i18n="movement-teaching.currentSkillList">当前技能列表</h3>
               <ul id="trick-list" class="trick-list grid-flow"></ul>
               <div class="batch-actions">
                 <button
                   id="save-tricks-btn"
                   class="settings-btn glow-btn primary"
+                  data-i18n="movement-teaching.saveChanges"
                 >
                   保存更改
                 </button>
@@ -89,12 +90,13 @@
             <div class="data-editor">
               <form id="trick-form">
                 <div class="form-group">
-                  <label for="trick-name">技能名称:</label>
+                  <label for="trick-name" data-i18n="movement-teaching.skillName">技能名称:</label>
                   <input
                     type="text"
                     id="trick-name"
                     name="trick-name"
                     placeholder="输入技能名称"
+                    data-i18n-attr="placeholder:movement-teaching.skillNamePlaceholder"
                     required
                   />
                 </div>
@@ -103,6 +105,7 @@
                     type="submit"
                     id="save-trick-edit"
                     class="settings-btn glow-btn primary"
+                    data-i18n="movement-teaching.addToList"
                   >
                     添加到左侧列表
                   </button>
@@ -110,6 +113,7 @@
                     type="button"
                     id="cancel-trick-edit"
                     class="settings-btn glow-btn"
+                    data-i18n="movement-teaching.cancel"
                   >
                     取消
                   </button>
@@ -124,8 +128,8 @@
 
       <!-- 布局：.grid-flow（auto-fit）宽屏一行 / 窄屏单列，零媒体查询 -->
       <div class="navigation grid-flow">
-        <button id="back-btn" class="nav-btn glow-btn">返回游戏</button>
-        <button id="home-btn" class="nav-btn glow-btn">返回主页</button>
+        <button id="back-btn" class="nav-btn glow-btn" data-i18n="movement-teaching.backToGame">返回游戏</button>
+        <button id="home-btn" class="nav-btn glow-btn" data-i18n="movement-teaching.backHome">返回主页</button>
       </div>
 
       <footer>

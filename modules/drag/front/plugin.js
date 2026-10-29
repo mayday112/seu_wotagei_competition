@@ -26,6 +26,7 @@
  */
 import { dragComponent, componentProps } from "./view.js";
 import { mountFromConfig } from "/web/components/compose.mjs";
+import { registerLocales } from "./locales/index.mjs";
 
 /** 插槽兜底（清单未声明 slots 时的缺省选择器，键 = 组件名，与 index.html 的 data-slot 对应） */
 const DEFAULT_SLOTS = {
@@ -35,8 +36,9 @@ const DEFAULT_SLOTS = {
 
 export default {
   name: "drag-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "drag",
       component(el, meta, componentCtx) {

@@ -36,7 +36,7 @@ export function createPlayerList(host, props = {}, ctx) {
         <span class="player-list__stats"></span>
       </div>
       <div class="player-list__body">
-        <div class="player-list__hint">选手名单加载中…</div>
+        <div class="player-list__hint"></div>
       </div>
     </div>
   `;
@@ -47,10 +47,13 @@ export function createPlayerList(host, props = {}, ctx) {
 
   titleEl.textContent = typeof props.title === "string" && props.title.trim()
     ? props.title
-    : "选手名单";
+    : (ctx?.i18n?.t ? ctx.i18n.t("component-player-list.title", "选手名单") : "选手名单");
 
   function renderStats() {
-    statsEl.textContent = `共 ${names.length} 人 · 已选 ${selected.size} 人`;
+    const statsText = ctx?.i18n?.t
+      ? ctx.i18n.t("component-player-list.selectedStatus", { total: names.length, selected: selected.size }, `共 ${names.length} 人 · 已选 ${selected.size} 人`)
+      : `共 ${names.length} 人 · 已选 ${selected.size} 人`;
+    statsEl.textContent = statsText;
   }
 
   /** 单行提示（加载中 / 错误 / 空名单）替换 body 内容 */
@@ -119,14 +122,14 @@ export function createPlayerList(host, props = {}, ctx) {
       }
       selected.clear();
       if (names.length === 0) {
-        renderRow("暂无选手数据", false);
+        renderRow(ctx?.i18n?.t ? ctx.i18n.t("component-player-list.noData", "暂无选手数据") : "暂无选手数据", false);
       } else {
         renderGrid();
       }
     })
     .catch(() => {
       if (signal.aborted) return;
-      renderRow("选手数据加载失败", true);
+      renderRow(ctx?.i18n?.t ? ctx.i18n.t("component-player-list.loadFailed", "选手数据加载失败") : "选手数据加载失败", true);
     });
 
   renderStats();

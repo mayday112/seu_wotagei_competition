@@ -36,6 +36,7 @@ import { mountFromConfig } from "/web/components/compose.mjs";
 import { initPage1, componentProps1 } from "./page1.js";
 import { initPage2, componentProps2 } from "./page2.js";
 import { initPage3, componentProps3 } from "./page3.js";
+import { registerLocales } from "./locales/index.mjs";
 
 /** 插槽兜底（清单未声明 slots 时的缺省选择器，键 = 组件名，与三页 HTML 的 data-slot 对应） */
 const DEFAULT_SLOTS = {
@@ -74,11 +75,13 @@ function mountWinCrown() {
 
 export default {
   name: "group-battle-front",
-  inject: ["ui"],
+  inject: ["ui", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "group-battle", // 必须 = 模块 id
-      component(el, meta) {
+      component(el, meta, componentCtx) {
+        const pageCtx = componentCtx || ctx;
         const page = detectPage();
         // 组件实例 API 桥：onReady 回填，页面 flow 消费（同一对象传给 componentProps 与 init）
         const bridge = { music: null, draw: null };
@@ -86,17 +89,17 @@ export default {
         const mounted = mountFromConfig({
           el,
           meta,
-          ctx,
+          ctx: pageCtx,
           label: "group-battle",
           defaultSlots: DEFAULT_SLOTS,
-          runtimeProps: page.componentProps(bridge),
+          runtimeProps: page.componentProps(bridge, pageCtx),
         });
 
         // 装饰图标（内联 SVG，替代原 emoji）
         mountWinCrown();
 
         // 页面 flow（拿到同一 bridge：bridge.music 已由组件 onReady 同步回填）
-        const cleanupPage = page.init(bridge);
+        const cleanupPage = page.init(bridge, pageCtx);
 
         return () => {
           // 先页面、后组件（mounted.cleanup 内部逆序 + 逐个隔离异常）

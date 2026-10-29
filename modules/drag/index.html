@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>对阵树式淘汰赛</title>
+    <title data-i18n="drag.pageTitle">对阵树式淘汰赛</title>
   <link rel="preload" as="image" href="/resource/images/bg.jpg" />
   <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于 style.css，页面样式可覆盖 -->
   <link rel="stylesheet" href="/web/components/grid.css" />
@@ -34,10 +34,10 @@
             <button id="switch-music-ex-btn" class="source-btn">1year+EX</button>
           </div>
           <span class="round-label" id="round-label">第1轮</span>
-          <button id="shuffle-btn" class="ctrl-btn shuffle-btn" title="随机排列选手" data-i18n="drag.shuffle">随机</button>
-          <button id="reset-game-btn" class="ctrl-btn" title="重置比赛" data-i18n="drag.reset">重置</button>
-          <button id="setting-btn" class="ctrl-btn" title="打开设置" data-i18n="drag.setting">设置</button>
-          <button id="home-btn" class="ctrl-btn" title="回到主页" data-i18n="drag.home">主页</button>
+          <button id="shuffle-btn" class="ctrl-btn shuffle-btn" title="随机排列选手" data-i18n="common.shuffle" data-i18n-attr="title:drag.shuffleTitle">随机</button>
+          <button id="reset-game-btn" class="ctrl-btn" title="重置比赛" data-i18n="drag.reset" data-i18n-attr="title:drag.resetTitle">重置</button>
+          <button id="setting-btn" class="ctrl-btn" title="打开设置" data-i18n="drag.setting" data-i18n-attr="title:drag.settingTitle">设置</button>
+          <button id="home-btn" class="ctrl-btn" title="回到主页" data-i18n="common.home" data-i18n-attr="title:common.backHome">主页</button>
         </div>
       </header>
 

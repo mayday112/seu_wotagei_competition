@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>体态传技记录 - Y.Stage</title>
+    <title data-i18n="movement-teaching.recordsPageTitle">体态传技记录 - Y.Stage</title>
     <link rel="preload" as="image" href="/resource/images/bg_index.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于页面样式，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -16,22 +16,23 @@
   <body>
     <div class="container">
       <header>
-        <h1>体态传技记录</h1>
-        <p class="subtitle">查看游戏记录和统计</p>
+        <h1 data-i18n="movement-teaching.recordsTitle">体态传技记录</h1>
+        <p class="subtitle" data-i18n="movement-teaching.recordsSubtitle">查看游戏记录和统计</p>
       </header>
 
       <main>
         <section id="records-panel" class="records-panel">
           <div class="panel-header">
-            <h2>游戏记录</h2>
+            <h2 data-i18n="movement-teaching.recordsPanelTitle">游戏记录</h2>
             <div class="header-actions">
-              <button id="refresh-btn" class="action-btn" title="刷新记录列表">
+              <button id="refresh-btn" class="action-btn" title="刷新记录列表" data-i18n-attr="title:movement-teaching.refreshRecords">
                 <span class="icon"></span>
               </button>
               <button
                 id="clear-all-btn"
                 class="action-btn danger"
                 title="清空所有记录"
+                data-i18n-attr="title:movement-teaching.clearAllRecords"
               >
                 <span class="icon"></span>
               </button>
@@ -40,8 +41,9 @@
                   type="text"
                   id="search-input"
                   placeholder="搜索队伍名称..."
+                  data-i18n-attr="placeholder:movement-teaching.searchPlaceholder"
                 />
-                <button id="search-btn" class="action-btn">
+                <button id="search-btn" class="action-btn" title="搜索" data-i18n-attr="title:movement-teaching.search">
                   <span class="icon"></span>
                 </button>
               </div>
@@ -51,15 +53,15 @@
           <!-- 统计卡片：.grid-cards（auto-fill）宽屏三等分 / 窄屏连续减列，零媒体查询 -->
           <div class="records-stats grid-cards">
             <div class="stat-card">
-              <h3>总记录数</h3>
+              <h3 data-i18n="movement-teaching.totalRecords">总记录数</h3>
               <p id="total-records">0</p>
             </div>
             <div class="stat-card">
-              <h3>猜中率</h3>
+              <h3 data-i18n="movement-teaching.guessRate">猜中率</h3>
               <p id="correct-percentage">0%</p>
             </div>
             <div class="stat-card">
-              <h3>平均时间</h3>
+              <h3 data-i18n="movement-teaching.averageTime">平均时间</h3>
               <p id="average-time">00:00</p>
             </div>
           </div>
@@ -68,18 +70,18 @@
             <table id="records-table">
               <thead>
                 <tr>
-                  <th>队伍名称</th>
-                  <th>技能</th>
-                  <th>用时</th>
-                  <th>猜测结果</th>
-                  <th>日期</th>
-                  <th>操作</th>
+                  <th data-i18n="movement-teaching.thTeamName">队伍名称</th>
+                  <th data-i18n="movement-teaching.thSkill">技能</th>
+                  <th data-i18n="movement-teaching.thTimeUsed">用时</th>
+                  <th data-i18n="movement-teaching.thGuessResult">猜测结果</th>
+                  <th data-i18n="movement-teaching.thDate">日期</th>
+                  <th data-i18n="movement-teaching.thAction">操作</th>
                 </tr>
               </thead>
               <tbody id="records-list">
                 <!-- 记录将通过JS动态加载 -->
                 <tr class="loading-row">
-                  <td colspan="6">正在加载记录...</td>
+                  <td colspan="6" data-i18n="movement-teaching.loadingRecords">正在加载记录...</td>
                 </tr>
               </tbody>
             </table>
@@ -88,8 +90,8 @@
 
         <!-- 导航：保留 flex 行（父级 main 居中收缩，见 records.css 说明） -->
         <div class="navigation">
-          <button id="back-btn" class="nav-btn">返回游戏</button>
-          <button id="home-btn" class="nav-btn">返回主页</button>
+          <button id="back-btn" class="nav-btn" data-i18n="movement-teaching.backToGame">返回游戏</button>
+          <button id="home-btn" class="nav-btn" data-i18n="movement-teaching.backHome">返回主页</button>
         </div>
       </main>
     </div>

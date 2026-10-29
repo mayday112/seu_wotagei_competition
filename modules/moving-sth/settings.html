@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>Y.Stage 4 - 定时搬化棒设置</title>
+    <title data-i18n="moving-sth.settingsPageTitle">Y.Stage 4 - 定时搬化棒设置</title>
     <link rel="preload" as="image" href="/resource/images/bg_index.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于页面样式，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -15,15 +15,15 @@
     <div class="background-overlay"></div>
     <div class="container">
       <header>
-        <h1>定时搬化棒 - 设置</h1>
-        <p class="subtitle">自定义游戏设定</p>
+        <h1 data-i18n="moving-sth.settingsTitle">定时搬化棒 - 设置</h1>
+        <p class="subtitle" data-i18n="moving-sth.settingsSubtitle">自定义游戏设定</p>
       </header>
 
       <main>
         <div class="settings-container">
           <form id="settings-form">
             <div class="setting-group">
-              <label for="time-setting">时间限制（秒）:</label>
+              <label for="time-setting" data-i18n="moving-sth.timeLimitSetting">时间限制（秒）:</label>
               <input
                 type="number"
                 id="time-setting"
@@ -35,7 +35,7 @@
             </div>
 
             <div class="setting-group">
-              <label for="opacity-setting">倒计时开始后界面透明度:</label>
+              <label for="opacity-setting" data-i18n="moving-sth.opacitySetting">倒计时开始后界面透明度:</label>
               <div class="opacity-slider-container">
                 <input
                   type="range"
@@ -47,15 +47,15 @@
                 />
                 <span id="opacity-value">80%</span>
               </div>
-              <p class="setting-description">
+              <p class="setting-description" data-i18n="moving-sth.opacityDesc">
                 调整倒计时开始后非游戏核心元素的透明度
               </p>
             </div>
 
             <!-- 布局：.grid-flow（auto-fit）宽屏一行 / 窄屏单列，零媒体查询 -->
             <div class="button-group grid-flow">
-              <button type="submit" id="save-settings-btn">保存设置</button>
-              <button type="button" id="reset-default-btn">恢复默认</button>
+              <button type="submit" id="save-settings-btn" data-i18n="moving-sth.saveSettings">保存设置</button>
+              <button type="button" id="reset-default-btn" data-i18n="moving-sth.resetDefault">恢复默认</button>
             </div>
           </form>
         </div>
@@ -63,9 +63,9 @@
 
       <!-- 布局：.grid-flow（auto-fit）宽屏一行 / 窄屏单列，零媒体查询 -->
       <div class="navigation grid-flow">
-        <button id="back-to-game-btn">返回游戏</button>
-        <button id="back-btn">返回游戏中心</button>
-        <button id="home-btn">返回主页</button>
+        <button id="back-to-game-btn" data-i18n="moving-sth.backToGame">返回游戏</button>
+        <button id="back-btn" data-i18n="moving-sth.backToGames">返回游戏中心</button>
+        <button id="home-btn" data-i18n="moving-sth.backHome">返回主页</button>
       </div>
 
       <footer>

@@ -8,11 +8,13 @@
  * 组件 cleanup = abort() + 停止视图内定时器。
  */
 import { createManagerView } from "./view.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "plugin-manager",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "plugin-manager",
       component(el, meta, ctx2) {
@@ -20,6 +22,7 @@ export default {
         const stop = createManagerView({
           root: el,
           api: ctx2.api,
+          ctx: ctx2,
           signal: abort.signal,
         });
         return () => {

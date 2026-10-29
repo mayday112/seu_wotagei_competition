@@ -18,6 +18,11 @@ import { GameData, useGameDataApi } from "./game-data.js";
 import { createPersistence } from "/web/lib/persist.mjs";
 import { icon } from "/web/icons.mjs";
 
+let pageI18n = null;
+function t(key, fb, params) {
+  return pageI18n ? pageI18n.t(key, params ?? fb, fb) : fb;
+}
+
 // 全局状态
 const State = {
   trickData: [],
@@ -90,7 +95,7 @@ function bindEvents(signal) {
   DOM.backBtn.addEventListener("click", function () {
     if (State.hasChanges) {
       createSimpleConfirmDialog(
-        "您有未保存的更改，确定要离开吗？",
+        t("movement-teaching.confirmLeaveUnsaved", "您有未保存的更改，确定要离开吗？"),
         function () {
           window.location.href = "index.html";
         }
@@ -103,7 +108,7 @@ function bindEvents(signal) {
   DOM.homeBtn.addEventListener("click", function () {
     if (State.hasChanges) {
       createSimpleConfirmDialog(
-        "您有未保存的更改，确定要离开吗？",
+        t("movement-teaching.confirmLeaveUnsaved", "您有未保存的更改，确定要离开吗？"),
         function () {
           window.location.href = "/m/home";
         }
@@ -144,7 +149,7 @@ function createSimpleConfirmDialog(message, confirmCallback) {
 
   // 确认按钮
   const confirmButton = document.createElement("button");
-  confirmButton.textContent = "确认";
+  confirmButton.textContent = t("movement-teaching.confirm", "确认");
   confirmButton.className = "confirm-btn";
   confirmButton.onclick = function () {
     document.body.removeChild(dialog);
@@ -153,7 +158,7 @@ function createSimpleConfirmDialog(message, confirmCallback) {
 
   // 取消按钮
   const cancelButton = document.createElement("button");
-  cancelButton.textContent = "取消";
+  cancelButton.textContent = t("movement-teaching.cancel", "取消");
   cancelButton.className = "cancel-btn";
   cancelButton.onclick = function () {
     document.body.removeChild(dialog);
@@ -181,7 +186,7 @@ function addButtonHoverEffects() {
 
 // 加载技能数据
 async function loadTrickData() {
-  showStatusMessage("正在加载技能数据...", "info");
+  showStatusMessage(t("movement-teaching.loadingSkillData", "正在加载技能数据..."), "info");
 
   try {
     const response = await fetch("/resource/json/tricks_for_game.json");
@@ -213,17 +218,17 @@ async function loadTrickData() {
     // 重置表单
     resetTrickForm();
 
-    showStatusMessage("技能数据加载成功", "success");
+    showStatusMessage(t("movement-teaching.skillDataLoaded", "技能数据加载成功"), "success");
   } catch (error) {
     console.error("加载技能数据失败:", error);
-    showStatusMessage(`加载技能数据失败: ${error.message}`, "error");
+    showStatusMessage(t("movement-teaching.loadSkillDataFailed", `加载技能数据失败: ${error.message}`, { reason: error.message }), "error");
   }
 }
 
 // 渲染技能列表
 function renderTrickList() {
   if (!State.trickData || State.trickData.length === 0) {
-    DOM.trickList.innerHTML = '<li class="empty">暂无技能数据</li>';
+    DOM.trickList.innerHTML = `<li class="empty">${escapeHtml(t("movement-teaching.noSkillData", "暂无技能数据"))}</li>`;
     return;
   }
 
@@ -236,8 +241,8 @@ function renderTrickList() {
     li.innerHTML = `
       <span class="item-name">${escapeHtml(trick.name)}</span>
       <div class="item-actions">
-        <button class="edit-btn" title="编辑">${icon("pencil", { size: 16, label: "编辑" })}</button>
-        <button class="delete-btn" title="删除">${icon("trash", { size: 16, label: "删除" })}</button>
+        <button class="edit-btn" title="${escapeHtml(t("movement-teaching.edit", "编辑"))}">${icon("pencil", { size: 16, label: t("movement-teaching.edit", "编辑") })}</button>
+        <button class="delete-btn" title="${escapeHtml(t("movement-teaching.delete", "删除"))}">${icon("trash", { size: 16, label: t("movement-teaching.delete", "删除") })}</button>
       </div>
     `;
 
@@ -265,17 +270,17 @@ function editTrick(index) {
     DOM.trickName.value = trick.name || "";
 
     // 显示正在编辑的状态
-    showStatusMessage(`正在编辑技能: ${trick.name}`, "info");
+    showStatusMessage(t("movement-teaching.editingSkill", `正在编辑技能: ${trick.name}`, { name: trick.name }), "info");
   }
 }
 
 // 删除技能
 function deleteTrick(index) {
-  createSimpleConfirmDialog("确定要删除这个技能吗？", function () {
+  createSimpleConfirmDialog(t("movement-teaching.confirmDeleteSkill", "确定要删除这个技能吗？"), function () {
     State.trickData.splice(index, 1);
     renderTrickList();
     State.hasChanges = true;
-    showStatusMessage("技能已删除，点击保存以提交更改", "info");
+    showStatusMessage(t("movement-teaching.skillDeletedTip", "技能已删除，点击保存以提交更改"), "info");
   });
 }
 
@@ -284,7 +289,7 @@ function handleTrickFormSubmit() {
   const name = DOM.trickName.value.trim();
 
   if (!name) {
-    showStatusMessage("技能名称不能为空", "error");
+    showStatusMessage(t("movement-teaching.skillNameEmpty", "技能名称不能为空"), "error");
     return;
   }
 
@@ -299,7 +304,7 @@ function handleTrickFormSubmit() {
   renderTrickList();
   resetTrickForm();
   State.hasChanges = true;
-  showStatusMessage("技能已更新，点击保存以提交更改", "info");
+  showStatusMessage(t("movement-teaching.skillUpdatedTip", "技能已更新，点击保存以提交更改"), "info");
 }
 
 // 重置技能表单
@@ -312,11 +317,11 @@ function resetTrickForm() {
 // 保存技能数据
 async function saveTrickData() {
   if (!State.hasChanges) {
-    showStatusMessage("没有需要保存的更改", "info");
+    showStatusMessage(t("movement-teaching.noChangesToSave", "没有需要保存的更改"), "info");
     return;
   }
 
-  showStatusMessage("正在保存技能数据...", "info");
+  showStatusMessage(t("movement-teaching.savingSkillData", "正在保存技能数据..."), "info");
 
   try {
     // 准备保存的数据格式
@@ -336,10 +341,10 @@ async function saveTrickData() {
     }
 
     State.hasChanges = false;
-    showStatusMessage("技能数据保存成功", "success");
+    showStatusMessage(t("movement-teaching.skillDataSaved", "技能数据保存成功"), "success");
   } catch (error) {
     console.error("保存技能数据失败:", error);
-    showStatusMessage(`保存失败: ${error.message}`, "error");
+    showStatusMessage(t("movement-teaching.saveFailedStatus", `保存失败: ${error.message}`, { reason: error.message }), "error");
   }
 }
 
@@ -405,7 +410,7 @@ async function loadSettingsData() {
     console.log("设置数据加载成功:", State.settings);
   } catch (error) {
     console.error("加载设置数据失败:", error);
-    showStatusMessage("加载设置数据失败", "error");
+    showStatusMessage(t("movement-teaching.loadSettingsDataFailed", "加载设置数据失败"), "error");
   }
 }
 
@@ -413,11 +418,11 @@ async function loadSettingsData() {
 async function saveSettings() {
   try {
     if (!State.hasChanges) {
-      showStatusMessage("没有需要保存的设置更改", "info");
+      showStatusMessage(t("movement-teaching.noSettingsChanges", "没有需要保存的设置更改"), "info");
       return;
     }
 
-    showStatusMessage("正在保存设置...", "info");
+    showStatusMessage(t("movement-teaching.savingSettings", "正在保存设置..."), "info");
     console.log("准备保存设置:", State.settings);
 
     // 保存设置到服务器
@@ -425,7 +430,7 @@ async function saveSettings() {
 
     if (success) {
       State.hasChanges = false;
-      showStatusMessage("设置保存成功", "success");
+      showStatusMessage(t("movement-teaching.settingsSavedSuccess", "设置保存成功"), "success");
 
       // 给设置面板一个保存成功的动画效果
       const settingsPanel = document.querySelector(".settings-panel");
@@ -647,6 +652,7 @@ async function saveGameSettings(settings) {
  *  组件入口（原两个 DOMContentLoaded 初始化 + 顶层 DOM 缓存，kernel render 时执行）
  * ================================================================= */
 export function initMovementTeachingSettings(ctx) {
+  pageI18n = ctx && ctx.i18n ? ctx.i18n : null;
   // cleanup 契约：静态骨架监听经 signal 登记，重渲染时 abort 统一解绑
   const bindAbort = new AbortController();
   const { signal } = bindAbort;

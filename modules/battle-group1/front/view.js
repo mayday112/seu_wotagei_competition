@@ -59,6 +59,8 @@ const later = (fn, ms) => timers.later(fn, ms);
 let persist = null;
 /* 组件实例 API 桥（front/plugin.js 传入、组件 onReady 回填；组件缺失时保持 null） */
 let apis = { music: null, draw: null };
+/* i18n 翻译辅助（组件入口绑定 ctx.i18n，缺省回退 fb） */
+let translate = (key, fb, params) => fb;
 /* 技池重试计数：loadTricks 失败路径不置 tricksLoaded，updateTrickPools 的 500ms
  * 延迟重试需上限（20 次 ≈ 10 秒），否则数据源持续失败时无限自旋；
  * 到限告警后清零，后续手动触发（抽选手等）仍可重新起一轮重试 */
@@ -197,23 +199,23 @@ function applyFeatureToggles() {
 // 初始化数据
 function initializeData() {
   // 显示加载提示
-  showToast("正在加载数据...", "info");
+  showToast(translate("battle-group1.toastLoadingData", "正在加载数据..."), "info");
 
   // 并行加载所有数据
   Promise.all([loadPlayers(), loadTricks(), loadMusic()])
     .then(() => {
       console.log("所有数据加载完成");
-      showToast("数据加载完成", "success");
+      showToast(translate("battle-group1.toastDataLoaded", "数据加载完成"), "success");
 
       // 初始化游戏
       initializeGameState().catch((error) => {
         console.error("游戏状态初始化失败:", error);
-        showToast("游戏状态加载失败，请刷新页面重试", "error");
+        showToast(translate("battle-group1.toastStateLoadError", "游戏状态加载失败，请刷新页面重试"), "error");
       });
     })
     .catch((error) => {
       console.error("数据加载失败:", error);
-      showToast("数据加载失败，请刷新页面重试", "error");
+      showToast(translate("battle-group1.toastDataLoadError", "数据加载失败，请刷新页面重试"), "error");
     });
 }
 
@@ -236,7 +238,15 @@ function updateRoundDisplay() {
   // 计算总轮次数
   const totalMatches = Math.ceil(BattleState.players.length / 2);
 
-  DOM.roundNumber.innerText = `${BattleState.currentRound}/${totalMatches} (剩余选手: ${availablePlayers.length})`;
+  DOM.roundNumber.innerText = translate(
+    "battle-group1.roundDisplay",
+    `${BattleState.currentRound}/${totalMatches} (剩余选手: ${availablePlayers.length})`,
+    {
+      current: BattleState.currentRound,
+      total: totalMatches,
+      remaining: availablePlayers.length,
+    }
+  );
 }
 
 // 显示技能对决
@@ -293,7 +303,7 @@ function toggleCross(element) {
 function showWinnerAnnouncement(winnerName) {
   const announcement = document.createElement("div");
   announcement.classList.add("winner-announcement");
-  announcement.innerText = `${winnerName} 获胜!`;
+  announcement.innerText = translate("battle-group1.winnerAnnouncement", `${winnerName} 获胜!`, { name: winnerName });
   document.body.appendChild(announcement);
 
   // 自动移除（句柄登记：cleanup 清定时器 + 摘孤儿节点）
@@ -381,7 +391,7 @@ function loadPlayersFromBackup() {
     throw new Error("无备份数据");
   } catch (error) {
     console.error("从备份加载选手数据失败:", error);
-    showToast("选手数据加载失败", "error");
+    showToast(translate("battle-group1.toastPlayersLoadError", "选手数据加载失败"), "error");
     return [];
   }
 }
@@ -403,7 +413,7 @@ function loadTricks() {
     })
     .catch((error) => {
       console.error("技能数据加载失败:", error);
-      showToast("技能数据加载失败", "error");
+      showToast(translate("battle-group1.toastTricksLoadError", "技能数据加载失败"), "error");
       return [];
     });
 }
@@ -425,7 +435,7 @@ function loadMusic() {
     })
     .catch((error) => {
       console.error("音乐数据加载失败:", error);
-      showToast("音乐数据加载失败", "error");
+      showToast(translate("battle-group1.toastMusicLoadError", "音乐数据加载失败"), "error");
       return [];
     });
 }
@@ -443,7 +453,7 @@ async function initializeGameState() {
   console.log("初始化游戏状态...");
 
   // 先显示加载提示
-  showToast("正在加载游戏状态...", "info");
+  showToast(translate("battle-group1.toastLoadingState", "正在加载游戏状态..."), "info");
 
   const { data, source } = await persist.load();
 
@@ -497,9 +507,9 @@ function guardChapter(chapter, source) {
   BattleState.currentChapter = 1;
   BattleState.currentRound = 4; // 设置为第4轮
   if (source === "server") {
-    showToast(`检测到进度：第${chapter}章，保持在第一章节`, "info");
+    showToast(translate("battle-group1.toastChapterGuardServer", `检测到进度：第${chapter}章，保持在第一章节`, { chapter }), "info");
   } else {
-    showToast(`检测到第${chapter}章进度，已重置为第1章第4轮`, "info");
+    showToast(translate("battle-group1.toastChapterGuardLocal", `检测到第${chapter}章进度，已重置为第1章第4轮`, { chapter }), "info");
   }
 }
 
@@ -580,7 +590,7 @@ function completeInitialization() {
   }
 
   // 显示加载完成提示
-  showToast("游戏状态加载完成", "success");
+  showToast(translate("battle-group1.toastStateLoaded", "游戏状态加载完成"), "success");
 }
 
 /** 存档载荷（原 saveGameState 的 state 字面量，字段与顺序逐字保留） */
@@ -612,10 +622,10 @@ function saveGameState() {
 function handlePersistError(error, phase) {
   if (phase === "save:local") {
     console.error("保存游戏状态失败:", error);
-    showToast("自动保存失败", "error");
+    showToast(translate("battle-group1.toastAutoSaveLocalError", "自动保存失败"), "error");
   } else if (phase === "save:remote") {
     console.error("服务器保存失败:", error);
-    showToast("自动保存失败，请检查网络连接", "error");
+    showToast(translate("battle-group1.toastAutoSaveRemoteError", "自动保存失败，请检查网络连接"), "error");
   } else {
     console.error("存档读写失败:", phase, error);
   }
@@ -625,7 +635,7 @@ function handlePersistError(error, phase) {
 function clearCache() {
   try {
     // 确认对话框
-    if (!confirm("确定要清除所有缓存数据吗？此操作将无法恢复。")) {
+    if (!confirm(translate("battle-group1.confirmClearCache", "确定要清除所有缓存数据吗？此操作将无法恢复。"))) {
       return;
     }
 
@@ -645,7 +655,7 @@ function clearCache() {
     ])
       .then(() => {
         console.log("所有缓存已清除");
-        showToast("缓存已清除", "success");
+        showToast(translate("battle-group1.toastCacheCleared", "缓存已清除"), "success");
         // 重置游戏状态
         resetGame();
         // 延迟刷新页面（一次性定时器登记：teardown 后可被 cleanup 回收）
@@ -653,11 +663,11 @@ function clearCache() {
       })
       .catch((error) => {
         console.error("清除缓存失败:", error);
-        showToast("清除缓存失败", "error");
+        showToast(translate("battle-group1.toastCacheClearError", "清除缓存失败"), "error");
       });
   } catch (error) {
     console.error("清除缓存失败:", error);
-    showToast("清除缓存失败", "error");
+    showToast(translate("battle-group1.toastCacheClearError", "清除缓存失败"), "error");
   }
 }
 
@@ -688,12 +698,12 @@ function resetGame() {
   handleDrawPlayers();
 
   // 清空技名和音乐（音乐展示/播放状态归 music-player 组件，这里同步归零其内部 current）
-  DOM.randomTricksDisplay.innerHTML = "请抽取动作";
+  DOM.randomTricksDisplay.innerHTML = translate("tournament.pleaseDrawTrick", "请抽取动作");
   if (apis.music) {
     apis.music.stop();
     apis.music.clearItem();
   }
-  DOM.musicName.innerText = "音乐名称";
+  DOM.musicName.innerText = translate("tournament.musicName", "音乐名称");
   DOM.musicPlayer.src = "";
 
   // 重置选手区域样式
@@ -703,11 +713,11 @@ function resetGame() {
   // 初始化winners.json文件
   resetWinnersData()
     .then(() => {
-      showToast("游戏已重置，获胜者记录已清空", "success");
+      showToast(translate("battle-group1.toastGameResetSuccess", "游戏已重置，获胜者记录已清空"), "success");
     })
     .catch((error) => {
       console.error("清空获胜者记录失败:", error);
-      showToast("游戏已重置，但获胜者记录清空失败", "warning");
+      showToast(translate("battle-group1.toastGameResetWarn", "游戏已重置，但获胜者记录清空失败"), "warning");
     });
 
   // 保存状态
@@ -753,7 +763,7 @@ function saveWinnerData(winnerData) {
   // 保存到服务器
   saveWinnerToServer(winnerData).then((success) => {
     if (!success) {
-      showToast("保存到服务器失败，已保存到本地", "warning");
+      showToast(translate("battle-group1.toastSaveWinnerLocalOnly", "保存到服务器失败，已保存到本地"), "warning");
     }
   });
 }
@@ -815,7 +825,7 @@ function saveWinnerToServer(winnerData) {
         })
         .then(() => {
           console.log("获胜者已保存到服务器:", winnerData);
-          showToast(`已保存获胜者: ${winnerData.winner}`, "success");
+          showToast(translate("battle-group1.toastWinnerSaved", `已保存获胜者: ${winnerData.winner}`, { winner: winnerData.winner }), "success");
           resolve(true);
         })
         .catch((error) => {
@@ -837,7 +847,7 @@ function saveWinnerToServer(winnerData) {
 // 处理下一轮
 function handleNextRound() {
   if (!BattleState.currentWinner) {
-    showToast("请先选择本轮胜者", "warning");
+    showToast(translate("battle-group1.toastSelectWinnerFirst", "请先选择本轮胜者"), "warning");
     return;
   }
 
@@ -920,11 +930,11 @@ function showNextChapterPrompt() {
   promptDiv.className = "next-chapter-prompt";
   promptDiv.innerHTML = `
     <div class="prompt-content">
-      <h3>第一章节已完成</h3>
-      <p>您已经完成了第一章节的比赛。</p>
+      <h3>${translate("battle-group1.chapter1DoneTitle", "第一章节已完成")}</h3>
+      <p>${translate("battle-group1.chapter1DoneDesc", "您已经完成了第一章节的比赛。")}</p>
       <div class="prompt-buttons">
-        <button id="stay-button">留在当前页面</button>
-        <button id="next-chapter-button">进入第二章节</button>
+        <button id="stay-button">${translate("battle-group1.stayCurrentPage", "留在当前页面")}</button>
+        <button id="next-chapter-button">${translate("battle-group1.enterChapter2", "进入第二章节")}</button>
       </div>
     </div>
   `;
@@ -971,7 +981,7 @@ function startNextChapter() {
   }
 
   // 对于其他情况，显示完成信息并跳转到结果页面
-  showToast("比赛已结束！", "success");
+  showToast(translate("battle-group1.toastTournamentEnded", "比赛已结束！"), "success");
   later(() => {
     window.location.href = "/m/rank";
   }, 1500);
@@ -986,7 +996,7 @@ function drawAvailablePlayers() {
   );
 
   if (availablePlayers.length < 2) {
-    showToast("可用选手不足，将进入下一章节", "warning");
+    showToast(translate("battle-group1.toastNotEnoughAvailablePlayers", "可用选手不足，将进入下一章节"), "warning");
     startNextChapter();
     return;
   }
@@ -1047,7 +1057,7 @@ function generateRandomTricks(count) {
   if (!BattleState.tricks || BattleState.tricks.length === 0) {
     return Array(count)
       .fill()
-      .map((_, i) => `默认技能${i + 1}`);
+      .map((_, i) => translate("battle-group1.defaultTrick", `默认技能${i + 1}`, { n: i + 1 }));
   }
 
   const numTricks = Math.min(count, BattleState.tricks.length);
@@ -1149,7 +1159,7 @@ function setupEventListeners(signal) {
     !DOM.resetGameBtn
   ) {
     console.error("无法找到必要的DOM元素，请检查HTML结构");
-    showToast("页面加载错误，请刷新重试", "error");
+    showToast(translate("battle-group1.toastDomError", "页面加载错误，请刷新重试"), "error");
     return;
   }
 
@@ -1163,7 +1173,7 @@ function setupEventListeners(signal) {
 
   // 重置按钮
   DOM.resetGameBtn.addEventListener("click", function () {
-    if (confirm("确定要重置当前对战进度吗？将开始新的章节。")) {
+    if (confirm(translate("battle-group1.confirmResetGame", "确定要重置当前对战进度吗？将开始新的章节。"))) {
       resetGame();
     }
   }, { signal });
@@ -1192,12 +1202,12 @@ function handleDrawPlayers() {
   console.log("执行抽取选手");
 
   if (!BattleState.playersLoaded) {
-    showToast("选手数据正在加载，请稍候", "info");
+    showToast(translate("battle-group1.toastPlayersLoading", "选手数据正在加载，请稍候"), "info");
     return;
   }
 
   if (BattleState.players.length < 2) {
-    showToast("选手数量不足，无法进行对战", "error");
+    showToast(translate("battle-group1.toastNotEnoughPlayers", "选手数量不足，无法进行对战"), "error");
     return;
   }
 
@@ -1211,12 +1221,12 @@ function handleDrawTricks() {
   console.log("执行抽取动作");
 
   if (localStorage.getItem("feature_group1_draw_trick_enabled") === "false") {
-    showToast("抽取动作功能已在设置页关闭", "info");
+    showToast(translate("battle-group1.toastDrawTrickDisabled", "抽取动作功能已在设置页关闭"), "info");
     return;
   }
 
   if (!BattleState.tricksLoaded) {
-    showToast("技能数据正在加载，请稍候", "info");
+    showToast(translate("battle-group1.toastTricksLoading", "技能数据正在加载，请稍候"), "info");
     return;
   }
 
@@ -1239,7 +1249,7 @@ function handleDrawTricks() {
   );
 
   if (player1Tricks.length === 0 || player2Tricks.length === 0) {
-    showToast("技池中没有可用的技能", "error");
+    showToast(translate("battle-group1.toastNoAvailableTricks", "技池中没有可用的技能"), "error");
     return;
   }
 
@@ -1259,13 +1269,13 @@ function handleDrawTricks() {
 // 撤消当前轮次的胜者选择
 function handleClearWinnerSelection() {
   if (!BattleState.currentWinner) {
-    showToast("当前尚未选择胜者", "info");
+    showToast(translate("battle-group1.toastNoWinnerSelected", "当前尚未选择胜者"), "info");
     return;
   }
 
   resetWinnerDisplay();
   saveGameState();
-  showToast("已撤消本轮胜者选择", "success");
+  showToast(translate("battle-group1.toastWinnerCleared", "已撤消本轮胜者选择"), "success");
 }
 
 // 处理中键点击函数
@@ -1327,7 +1337,7 @@ export function componentProps(bridge) {
       // 迁移前抖动发生在路径内 1300ms（BATTLE START 定稿），不是在真正开播的 4500ms。
       onOverlayShown: shakeBattleOverlay,
       // 未抽到音乐即点播放（迁移前提示文案逐字保留）
-      onEmpty: () => showToast("请先抽取音乐", "warning"),
+      onEmpty: () => showToast(translate("battle-group1.toastDrawMusicFirst", "请先抽取音乐"), "warning"),
     },
     "draw-machine": {
       items: () => BattleState.musicList,
@@ -1339,12 +1349,14 @@ export function componentProps(bridge) {
       // 迁移前 handleDrawMusic 的两条前置校验（文案逐字保留）
       onEmpty: () =>
         showToast(
-          BattleState.musicLoaded ? "音乐列表为空" : "音乐数据正在加载，请稍候",
+          BattleState.musicLoaded
+            ? translate("battle-group1.toastMusicListEmpty", "音乐列表为空")
+            : translate("battle-group1.toastMusicLoading", "音乐数据正在加载，请稍候"),
           BattleState.musicLoaded ? "error" : "info"
         ),
       onResult: (item) => {
         if (bridge.music) bridge.music.setItem(item);
-        showToast(`已抽取音乐: ${item}`, "success");
+        showToast(translate("battle-group1.toastMusicDrawn", `已抽取音乐: ${item}`, { item }), "success");
       },
     },
   };
@@ -1354,6 +1366,9 @@ export function componentProps(bridge) {
  *  组件入口（原 bg1-core.js DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
 export function battleGroup1Component(el, meta, ctx, bridge) {
+  const t = (key, fb, params) => ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb;
+  translate = t;
+
   // cleanup 契约：静态骨架节点的全部监听经 signal 登记，重渲染时 abort 统一解绑，
   // 防止不刷新页面的重复 render 造成双绑双触发
   const bindAbort = new AbortController();

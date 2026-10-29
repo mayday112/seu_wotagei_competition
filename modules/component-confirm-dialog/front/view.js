@@ -77,12 +77,12 @@ export function createConfirmDialog(hostEl, props = {}, ctx) {
     const cancelBtn = document.createElement("button");
     cancelBtn.type = "button";
     cancelBtn.className = "cmp-confirm__btn cmp-confirm__btn--cancel";
-    cancelBtn.textContent = "取消";
+    cancelBtn.textContent = ctx?.i18n?.t ? ctx.i18n.t("common.cancel", "取消") : "取消";
 
     const confirmBtn = document.createElement("button");
     confirmBtn.type = "button";
     confirmBtn.className = "cmp-confirm__btn cmp-confirm__btn--confirm";
-    confirmBtn.textContent = "确认";
+    confirmBtn.textContent = ctx?.i18n?.t ? ctx.i18n.t("common.confirm", "确认") : "确认";
 
     actions.append(cancelBtn, confirmBtn);
     box.append(messageEl, actions);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>Y.Stage 4 - 插件管理</title>
+    <title data-i18n="plugin-manager.pageTitle">Y.Stage 4 - 插件管理</title>
     <link rel="preload" as="image" href="/resource/images/bg_index.jpg" />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -17,18 +17,18 @@
         <div class="pm-brand">
           <span class="pm-brand-icon" aria-hidden="true"></span>
           <div class="pm-brand-text">
-            <h1 class="pm-title">插件管理</h1>
-            <p class="pm-subtitle">插件装配管理与热替换</p>
+            <h1 class="pm-title" data-i18n="plugin-manager.title">插件管理</h1>
+            <p class="pm-subtitle" data-i18n="plugin-manager.subtitle">插件装配管理与热替换</p>
           </div>
         </div>
         <div class="pm-header-actions">
           <a class="pm-btn pm-btn--ghost" href="/">
             <span class="pm-ic" aria-hidden="true"></span>
-            <span>返回主页</span>
+            <span data-i18n="plugin-manager.backHome">返回主页</span>
           </a>
           <button class="pm-btn pm-btn--primary" type="button" id="pm-refresh">
             <span class="pm-ic" aria-hidden="true"></span>
-            <span>刷新快照</span>
+            <span data-i18n="plugin-manager.refreshSnapshot">刷新快照</span>
           </button>
         </div>
       </header>
@@ -36,7 +36,7 @@
       <!-- 主面板：#plugin-root 为管理视图挂载点（本页 root 可见，无 hidden） -->
       <main class="pm-panel">
         <div id="plugin-root">
-          <div class="plugin-placeholder">正在装配插件管理界面…</div>
+          <div class="plugin-placeholder" data-i18n="plugin-manager.placeholder">正在装配插件管理界面…</div>
         </div>
       </main>
 

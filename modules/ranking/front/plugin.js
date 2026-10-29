@@ -27,11 +27,14 @@
  */
 
 import { pickOne } from "/web/lib/random.mjs";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "ranking", // key 必须 = 模块 id，kernel 装配完按它 render
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
+    const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
     ctx.ui.register({
       key: "ranking",
       component(el, meta, ctx2) {
@@ -149,7 +152,7 @@ export default {
           const emptyPosition = emptyPositions[0];
 
           if (!emptyPosition) {
-            alert("排名已满！");
+            alert(t("ranking.rankFull", "排名已满！"));
             return;
           }
 

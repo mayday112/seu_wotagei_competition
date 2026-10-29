@@ -85,6 +85,10 @@ function persistFor(source) {
 /* 组件实例 API 桥（front/plugin.js 传入、组件 onReady 回填；组件缺失时保持 null） */
 let apis = { music: null, draw: null };
 
+/** i18n 上下文与翻译辅助函数 */
+let ctx = null;
+const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
+
 /* =================================================================
  *  全局状态
  * ================================================================= */
@@ -232,7 +236,7 @@ export function componentProps(bridge) {
       onReady: (api) => {
         bridge.draw = api;
       },
-      onEmpty: () => showHint("音乐列表为空"),
+      onEmpty: () => showHint(t("drag.emptyMusicList", "音乐列表为空")),
       // 迁移前 drawMusic 在滚动期间禁用「开始比赛」按钮（首个 tick 即 50ms 后，玩家不可能抢点）
       onTick: () => {
         const startBtn = document.getElementById("start-battle-btn");
@@ -255,11 +259,16 @@ export function componentProps(bridge) {
 /* =================================================================
  *  组件入口（原 DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
-export function dragComponent(el, meta, ctx, bridge) {
+export function dragComponent(el, meta, componentCtx, bridge) {
   // cleanup 契约：静态骨架节点的全部监听经 signal 登记，重渲染时 abort 统一解绑，
   // 防止不刷新页面的重复 render 造成双绑双触发
   const bindAbort = new AbortController();
   const { signal } = bindAbort;
+
+  ctx = componentCtx;
+  if (document.body) {
+    document.body.dataset.battleExitHint = t("tournament.stopHint", "双击任意位置停止");
+  }
 
   // 组件实例 API（front/plugin.js 的 onReady 回填；组件缺失时保持 null）
   apis = bridge || { music: null, draw: null };
@@ -416,7 +425,8 @@ function switchPlayerSource(source) {
           restoreComponentCurrent(); // 切源恢复存档：曲目同步复原到组件实例（同 #3）
           recomputeLayout();
           renderAll();
-          showHint("已切换到" + (source === "player1" ? "加组" : "内组") + "（已恢复进度）");
+          const groupName = source === "player1" ? t("drag.player1", "加组") : t("drag.player2", "内组");
+          showHint(t("drag.switchedToPlayerGroupProgress", `已切换到${groupName}（已恢复进度）`, { group: groupName }));
           return;
         }
       } catch (e) {}
@@ -425,7 +435,8 @@ function switchPlayerSource(source) {
     buildOrResetBracket();
     saveState();
     renderAll();
-    showHint("已切换到" + (source === "player1" ? "加组" : "内组"));
+    const groupName = source === "player1" ? t("drag.player1", "加组") : t("drag.player2", "内组");
+    showHint(t("drag.switchedToPlayerGroup", `已切换到${groupName}`, { group: groupName }));
   });
 }
 
@@ -440,7 +451,7 @@ function shufflePlayers() {
     buildOrResetBracket();
     saveState();
     renderAll();
-    showHint("已随机排列选手");
+    showHint(t("drag.playersShuffled", "已随机排列选手"));
   });
 }
 
@@ -457,17 +468,17 @@ function loadPlayers() {
       const isPow2 = (n) => n > 0 && (n & (n - 1)) === 0;
       if (!isPow2(State.allPlayers.length)) {
         const padded = Math.pow(2, Math.ceil(Math.log2(State.allPlayers.length)));
-        showError("选手人数(" + State.allPlayers.length + ")非2^n，将补齐至" + padded + "个位置");
+        showError(t("drag.notPowerOfTwo", `选手人数(${State.allPlayers.length})非2^n，将补齐至${padded}个位置`, { count: State.allPlayers.length, padded }));
       } else {
         hideError();
       }
 
-      document.getElementById("round-label").textContent =
-        "第1轮 · " + State.totalCount + "人";
+      updateStatus();
+
     })
     .catch(err => {
       console.error("加载选手失败:", err);
-      showError("选手数据加载失败");
+      showError(t("drag.loadPlayersFailed", "选手数据加载失败"));
     });
 }
 
@@ -507,7 +518,7 @@ function loadSettings() {
  *  重置
  * ================================================================= */
 function handleReset() {
-  if (!confirm("确定要重置比赛？所有进度将丢失。")) return;
+  if (!confirm(t("drag.resetConfirm", "确定要重置比赛？所有进度将丢失。"))) return;
 
   // 清两端存档（本地 key + POST /api/clear-drag-process），键/端点逐字保留
   persistFor(State.playerSource).reset();
@@ -533,7 +544,7 @@ function handleReset() {
     saveState();
     recomputeLayout();
     renderAll();
-    showHint("已重置");
+    showHint(t("drag.resetSuccess", "已重置"));
   });
 }
 
@@ -851,7 +862,7 @@ function transitionToDoubleElim(silent) {
     renderNodes();
   }
   updateStatus();
-  if (!silent) showHint("四强双败淘汰赛已开启！");
+  if (!silent) showHint(t("drag.doubleElimStarted", "四强双败淘汰赛已开启！"));
 }
 
 /* =================================================================
@@ -1070,15 +1081,15 @@ function renderNodes() {
       if (displayName !== node.playerName) el.title = node.playerName;
     } else if (node.state === "pending") {
       if (State.doubleElimActive && node.id.startsWith("LL_")) {
-        el.textContent = "败者";
+        el.textContent = t("drag.labelLoser", "败者");
       } else if (State.doubleElimActive && node.id === "WF_DROP") {
-        el.textContent = "WF败者";
+        el.textContent = t("drag.labelWFLoser", "WF败者");
       } else if (State.doubleElimActive && node.id === "LF_2_0") {
-        el.textContent = "败决";
+        el.textContent = t("drag.labelLosersFinal", "败决");
       } else if (State.doubleElimActive && node.id === "WF_2_0") {
-        el.textContent = "胜决";
+        el.textContent = t("drag.labelWinnersFinal", "胜决");
       } else if (node.type === "champion") {
-        el.textContent = "决赛";
+        el.textContent = t("drag.labelFinal", "决赛");
       } else {
         el.textContent = "[TBD]";
       }
@@ -1186,8 +1197,9 @@ function updateStatus() {
 
   if (State.phase === "complete") {
     const champ = State.championId ? State.nodeById[State.championId] : null;
-    setHintWithIcon(statusHint, "trophy", "冠军: " + (champ ? champ.playerName : "—"));
-    roundLabel.textContent = "比赛结束";
+    const champName = champ ? champ.playerName : "—";
+    setHintWithIcon(statusHint, "trophy", t("drag.statusChampion", `冠军: ${champName}`, { name: champName }));
+    roundLabel.textContent = t("drag.statusMatchEnded", "比赛结束");
     return;
   }
 
@@ -1210,23 +1222,23 @@ function updateStatus() {
   const doubleElimPending = State.doubleElim && !State.doubleElimActive && getActivePlayerCount() > 0;
 
   if (isChampionshipRound) {
-    roundLabel.textContent = "决赛 · " + State.totalCount + "人";
+    roundLabel.textContent = t("drag.roundLabelFinal", `决赛 · ${State.totalCount}人`, { count: State.totalCount });
     setHintWithIcon(
       statusHint,
       "trophy",
       doubleElimPending
-        ? "决赛！拖拽至中央 [决赛] 方框（剩余 <4 人，双败未触发）"
-        : "决赛！拖拽胜者至中央 [决赛] 方框"
+        ? t("drag.hintFinalPending", "决赛！拖拽至中央 [决赛] 方框（剩余 <4 人，双败未触发）")
+        : t("drag.hintFinal", "决赛！拖拽胜者至中央 [决赛] 方框")
     );
   } else {
-    roundLabel.textContent = "第" + (currentRound + 1) + "轮 · " + State.totalCount + "人";
+    roundLabel.textContent = t("drag.roundLabelNumber", `第${currentRound + 1}轮 · ${State.totalCount}人`, { round: currentRound + 1, count: State.totalCount });
     if (!draggableExists()) {
       statusHint.textContent = completed >= totalMatches
-        ? "所有比赛已完成" : "等待双方就位后拖拽胜者晋级";
+        ? t("drag.statusAllMatchesDone", "所有比赛已完成") : t("drag.statusWaitForReady", "等待双方就位后拖拽胜者晋级");
     } else {
       statusHint.textContent = doubleElimPending
-        ? "拖拽胜者至内侧 [TBD] 方框以晋级（四强时自动切换双败赛）"
-        : "拖拽胜者至内侧 [TBD] 方框以晋级";
+        ? t("drag.hintAdvancePending", "拖拽胜者至内侧 [TBD] 方框以晋级（四强时自动切换双败赛）")
+        : t("drag.hintAdvance", "拖拽胜者至内侧 [TBD] 方框以晋级");
     }
   }
 }
@@ -1248,67 +1260,67 @@ function updateDoubleElimStatus(statusHint, roundLabel) {
   const resetNeeded = State.doubleElimResetDone && grandFinalReady;
 
   if (resetNeeded) {
-    roundLabel.textContent = "双败赛 · 总决赛加赛";
-    setHintWithIcon(statusHint, "swords", "加赛决胜局！双方各一败，拖拽胜者至中央 [决赛] 方框");
+    roundLabel.textContent = t("drag.doubleElimGrandFinalResetRound", "双败赛 · 总决赛加赛");
+    setHintWithIcon(statusHint, "swords", t("drag.doubleElimGrandFinalResetHint", "加赛决胜局！双方各一败，拖拽胜者至中央 [决赛] 方框"));
     return;
   }
 
   if (!wl1 || wl1.state === "pending" || !wr1 || wr1.state === "pending") {
-    roundLabel.textContent = "双败赛 · 半决赛";
+    roundLabel.textContent = t("drag.doubleElimSemiRound", "双败赛 · 半决赛");
     setHintWithIcon(
       statusHint,
       "list",
       !wl1 || wl1.state === "pending"
-        ? "第一轮：拖拽左侧 (A vs B) 胜者至上方方框"
-        : "第一轮：拖拽右侧 (C vs D) 胜者至上方方框"
+        ? t("drag.doubleElimSemiHintLeft", "第一轮：拖拽左侧 (A vs B) 胜者至上方方框")
+        : t("drag.doubleElimSemiHintRight", "第一轮：拖拽右侧 (C vs D) 胜者至上方方框")
     );
     return;
   }
 
   if (!wf || wf.state === "pending") {
-    roundLabel.textContent = "双败赛 · 胜者组决赛";
+    roundLabel.textContent = t("drag.doubleElimWinnersFinalRound", "双败赛 · 胜者组决赛");
     setHintWithIcon(
       statusHint,
       "list",
       wfReady
-        ? "第二轮：拖拽胜者进入 [胜决] 方框（败者自动进入败者组）"
-        : "胜者组决赛即将开始…"
+        ? t("drag.doubleElimWinnersFinalHintReady", "第二轮：拖拽胜者进入 [胜决] 方框（败者自动进入败者组）")
+        : t("drag.doubleElimWinnersFinalHintPending", "胜者组决赛即将开始…")
     );
     return;
   }
 
   if (!lb1 || lb1.state === "pending") {
-    roundLabel.textContent = "双败赛 · 败者组第一轮";
+    roundLabel.textContent = t("drag.doubleElimLosersRound1Round", "双败赛 · 败者组第一轮");
     setHintWithIcon(
       statusHint,
       "list",
       lbReady
-        ? "第二轮：拖拽败者组胜者至 [TBD] 方框"
-        : "等待双方败者就位…"
+        ? t("drag.doubleElimLosersRound1HintReady", "第二轮：拖拽败者组胜者至 [TBD] 方框")
+        : t("drag.doubleElimLosersRound1HintPending", "等待双方败者就位…")
     );
     return;
   }
 
   if (!lf || lf.state === "pending") {
-    roundLabel.textContent = "双败赛 · 败者组决赛";
+    roundLabel.textContent = t("drag.doubleElimLosersFinalRound", "双败赛 · 败者组决赛");
     setHintWithIcon(
       statusHint,
       "list",
       lfReady
-        ? "第三轮：拖拽胜者进入 [败决] 方框"
-        : "等待双方选手就位（胜者组败者 + 败者组胜者）"
+        ? t("drag.doubleElimLosersFinalHintReady", "第三轮：拖拽胜者进入 [败决] 方框")
+        : t("drag.doubleElimLosersFinalHintPending", "等待双方选手就位（胜者组败者 + 败者组胜者）")
     );
     return;
   }
 
   if (grandFinalReady) {
-    roundLabel.textContent = "双败赛 · 总决赛";
-    setHintWithIcon(statusHint, "trophy", "第四轮：拖拽胜者至中央 [决赛] 方框！（若败者组冠军胜出将触发加赛）");
+    roundLabel.textContent = t("drag.doubleElimGrandFinalRound", "双败赛 · 总决赛");
+    setHintWithIcon(statusHint, "trophy", t("drag.doubleElimGrandFinalHint", "第四轮：拖拽胜者至中央 [决赛] 方框！（若败者组冠军胜出将触发加赛）"));
     return;
   }
 
-  roundLabel.textContent = "双败赛 · 进行中";
-  statusHint.textContent = "等待各轮次选手就位";
+  roundLabel.textContent = t("drag.doubleElimOngoingRound", "双败赛 · 进行中");
+  statusHint.textContent = t("drag.doubleElimOngoingHint", "等待各轮次选手就位");
 }
 
 function findCurrentRound() {
@@ -1440,7 +1452,7 @@ function onDrop(e) {
     return;
   }
 
-  showHint("请拖放到对应内侧方框");
+  showHint(t("drag.dragToAdvance", "请拖放到对应内侧方框"));
   dragData = null;
 }
 
@@ -1489,7 +1501,7 @@ function executeAdvance(fromNode, toNode) {
   checkDoubleElimTransition();
   saveState();
   renderAll();
-  showHint(fromNode.playerName + " 已晋级!");
+  showHint(t("drag.advancedSuccess", `${fromNode.playerName} 已晋级!`, { name: fromNode.playerName }));
 }
 
 /* =================================================================
@@ -1530,7 +1542,7 @@ function autoPlaceLoser(loserNodeId, targetNodeId) {
   propagateAdvance(target);
   processByes();
 
-  showHint(loser.playerName + " 自动进入败者组", "bolt");
+  showHint(t("drag.autoEnteredLosers", `${loser.playerName} 自动进入败者组`, { name: loser.playerName }), "bolt");
 }
 
 /**
@@ -1585,7 +1597,7 @@ function checkDoubleElimBracketReset(toNode) {
   if (toNode.playerName === lf.playerName && wf.state === "occupied" && wf.playerName) {
     if (State.doubleElimResetDone) {
       State.phase = "complete";
-      showHint("总决赛加赛结束！冠军: " + toNode.playerName + "！", "trophy");
+      showHint(t("drag.grandFinalResetSuccess", `总决赛加赛结束！冠军: ${toNode.playerName}！`, { name: toNode.playerName }), "trophy");
       return false;
     }
 
@@ -1599,7 +1611,7 @@ function checkDoubleElimBracketReset(toNode) {
 
     saveState();
     renderAll();
-    showHint("胜者组冠军「" + wf.playerName + "」首次失利！双方各一败，请加赛决定冠军！", "alert-triangle");
+    showHint(t("drag.winnersFirstLoss", `胜者组冠军「${wf.playerName}」首次失利！双方各一败，请加赛决定冠军！`, { name: wf.playerName }), "alert-triangle");
     return true;
   }
   return false;
@@ -1637,7 +1649,7 @@ function executeReplace(fromNode, toNode) {
   checkDoubleElimTransition();
   saveState();
   renderAll();
-  showHint("已替换为 " + fromNode.playerName);
+  showHint(t("drag.replacedWith", `已替换为 ${fromNode.playerName}`, { name: fromNode.playerName }));
 }
 
 function propagateAdvance(node) {
@@ -1689,7 +1701,7 @@ function tryUndoAdvance(node) {
     State.phase = "playing";
     saveState();
     renderAll();
-    showHint("已撤销晋级: " + node.playerName + "（对手已晋级，可拖入败者组）");
+    showHint(t("drag.undoAdvanceLoserReclaimed", `已撤销晋级: ${node.playerName}（对手已晋级，可拖入败者组）`, { name: node.playerName }));
     return;
   }
 
@@ -1705,7 +1717,7 @@ function tryUndoAdvance(node) {
   State.phase = "playing";
   saveState();
   renderAll();
-  showHint("已撤销晋级: " + node.playerName);
+  showHint(t("drag.undoAdvanceSuccess", `已撤销晋级: ${node.playerName}`, { name: node.playerName }));
 }
 
 function tryClearWinner(node) {
@@ -1726,7 +1738,7 @@ function tryClearWinner(node) {
   State.phase = "playing";
   saveState();
   renderAll();
-  showHint("已回退");
+  showHint(t("drag.reverted", "已回退"));
 }
 
 function cascadeClear(node) {
@@ -1796,6 +1808,7 @@ function switchMusicSource(source) {
   display.classList.remove("rolling", "selected");
   document.getElementById("start-battle-btn").disabled = true;
 
-  showHint("已切换到" + (source === "old" ? "1year+" : source === "new" ? "1year-" : "1year+EX") + " 曲库");
+  const bankName = source === "old" ? "1year+" : source === "new" ? "1year-" : "1year+EX";
+  showHint(t("drag.switchedMusicBank", `已切换到${bankName} 曲库`, { bank: bankName }));
 }
 

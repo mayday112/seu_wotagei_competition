@@ -69,7 +69,7 @@ export function installUi(ctx) {
       cleanupCurrent();
       const component = key != null ? pages.get(key) : null;
       if (!component) {
-        container.innerHTML = '<div class="plugin-placeholder">插件未启用或未提供界面</div>';
+        container.innerHTML = '<div class="plugin-placeholder" data-i18n="common.pluginDisabled">插件未启用或未提供界面</div>';
         return;
       }
       const cleanup = component(container, meta, ctx);

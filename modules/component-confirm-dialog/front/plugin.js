@@ -19,7 +19,7 @@ import { createConfirmDialog } from "./view.js";
 
 export default {
   name: "component-confirm-dialog",
-  inject: ["ui"],
+  inject: ["ui", "i18n"],
   apply(ctx) {
     // 内核组件注册表未就绪时优雅降级：不注册、不抛错（页面侧 component() 返回 null）
     if (typeof ctx.ui.registerComponent !== "function") {

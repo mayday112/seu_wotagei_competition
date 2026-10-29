@@ -75,7 +75,7 @@ export function createCountdown(host, props = {}, ctx) {
   const footerEl = root.querySelector(".countdown__footer");
 
   titleEl.textContent =
-    typeof props.title === "string" && props.title.trim() ? props.title : "倒计时";
+    typeof props.title === "string" && props.title.trim() ? props.title : (ctx?.i18n?.t ? ctx.i18n.t("component-countdown.title", "倒计时") : "倒计时");
 
   /** 按钮内容 = 图标（+ 可选文字）；iconEl 未知名返回 null，守卫后再 append */
   function setBtn(act, iconName, label, text) {
@@ -94,7 +94,9 @@ export function createCountdown(host, props = {}, ctx) {
   function render() {
     timeEl.textContent = formatTime(remainingMs);
     timeEl.classList.toggle("countdown__time--done", done);
-    setBtn("toggle", running ? "player-pause" : "player-play", "开始", running ? "暂停" : "开始");
+    const startText = ctx?.i18n?.t ? ctx.i18n.t("component-countdown.start", "开始") : "开始";
+    const pauseText = ctx?.i18n?.t ? ctx.i18n.t("component-countdown.pause", "暂停") : "暂停";
+    setBtn("toggle", running ? "player-pause" : "player-play", startText, running ? pauseText : startText);
     // 到点死态（done && remainingMs<=0）：start() 被门禁拒绝，toggle 置 disabled
     // （与 minus/plus 的 running-disable 同款属性直写）——用户经 +1 分钟/重置恢复
     const toggleBtn = footerEl.querySelector('[data-act="toggle"]');
@@ -166,9 +168,12 @@ export function createCountdown(host, props = {}, ctx) {
   );
 
   // 初始按钮：minus/plus 图标（图标即唯一语义 → label）
-  setBtn("minus", "minus", "减 1 分钟");
-  setBtn("plus", "plus", "加 1 分钟");
-  setBtn("reset", "refresh", null, "重置");
+  const minusLabel = ctx?.i18n?.t ? ctx.i18n.t("component-countdown.minusMinute", "减 1 分钟") : "减 1 分钟";
+  setBtn("minus", "minus", minusLabel);
+  const plusLabel = ctx?.i18n?.t ? ctx.i18n.t("component-countdown.plusMinute", "加 1 分钟") : "加 1 分钟";
+  setBtn("plus", "plus", plusLabel);
+  const resetText = ctx?.i18n?.t ? ctx.i18n.t("component-countdown.reset", "重置") : "重置";
+  setBtn("reset", "refresh", null, resetText);
   render();
 
   // ---- cleanup：定时器注册表 dispose（在飞 tick 与迟到续排一并终止）+ 解绑监听 ----

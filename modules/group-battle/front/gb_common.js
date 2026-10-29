@@ -34,6 +34,28 @@ export function showToast(message, type) {
   }, 2500);
 }
 
+let _ctx = null;
+
+export function setCtx(ctx) {
+  _ctx = ctx;
+}
+
+export function t(key, fb, params) {
+  const i18n = _ctx && _ctx.i18n;
+  if (i18n && typeof i18n.t === "function") {
+    if (params !== undefined) {
+      return i18n.t(key, params, fb);
+    }
+    return i18n.t(key, fb);
+  }
+  if (typeof fb === "string" && params && typeof params === "object") {
+    return fb.replace(/\{(\w+)\}/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : m,
+    );
+  }
+  return fb !== undefined ? fb : key;
+}
+
 /**
  * 页面作用域共用函数工厂（原 gb_common.js 中引用 GBState/DOM 的部分）
  * @param {{ GBState: object, DOM: object, PlayerPools: object }} page 页面闭包状态
@@ -49,8 +71,13 @@ export function makePageHelpers({ GBState, DOM, PlayerPools }) {
 
   function getArenaElementForPlayer(groupIdx, playerName) {
     const match = GBState.currentMatch;
+    const role1Data = DOM.arenaRole1.dataset.role;
     const role1 = DOM.arenaRole1.textContent;
-    const p1IsDefender = role1 === "守擂者" || role1 === "选手1";
+    const p1IsDefender =
+      role1Data === "defender" ||
+      role1Data === "player1" ||
+      role1 === "守擂者" ||
+      role1 === "选手1";
     if (p1IsDefender) {
       if (
         match.defender &&

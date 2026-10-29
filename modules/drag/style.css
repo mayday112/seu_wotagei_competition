@@ -479,7 +479,7 @@ body.battle-mode::before {
   z-index: 0;
 }
 body.battle-mode::after {
-  content: "双击屏幕结束比赛";
+  content: attr(data-battle-exit-hint);
   position: fixed;
   bottom: 30px;
   left: 50%;

@@ -477,10 +477,14 @@ const frontPluginJs = `/**
  * - 复杂页面可像既有模块一样操作 index.html 的静态骨架 DOM，而不是写进 el
  */
 
+import { registerLocales } from "./locales/index.mjs";
+
 export default {
   name: "${id}-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
+
     ctx.ui.register({
       key: "${id}",
       component(el, meta, ctx) {
@@ -517,16 +521,57 @@ export default {
 };
 `;
 
+// ========== modules/<id>/front/locales/（模块独立多语言字典） ==========
+const localesIndexMjs = `import zhCN from "./zh-CN.mjs";
+import enUS from "./en-US.mjs";
+import idID from "./id-ID.mjs";
+
+export const NAMESPACE = "${id}";
+
+export function registerLocales(ctx) {
+  if (!ctx || !ctx.i18n || typeof ctx.i18n.loadDictionary !== "function") return;
+  ctx.i18n.loadDictionary("zh-CN", { [NAMESPACE]: zhCN });
+  ctx.i18n.loadDictionary("en-US", { [NAMESPACE]: enUS });
+  ctx.i18n.loadDictionary("id-ID", { [NAMESPACE]: idID });
+}
+\`;
+
+const localesZhMjs = \`export default {
+  title: \${JSON.stringify(name)},
+  hint: "前端插件已装配。编辑 modules/${id}/front/plugin.js 开始开发。",
+  btnTest: "点我试试",
+};
+\`;
+
+const localesEnMjs = \`export default {
+  title: \${JSON.stringify(name)},
+  hint: "Frontend plugin assembled. Edit modules/${id}/front/plugin.js to get started.",
+  btnTest: "Try clicking me",
+};
+\`;
+
+const localesIdMjs = \`export default {
+  title: \${JSON.stringify(name)},
+  hint: "Plugin frontend telah terpasang. Edit modules/${id}/front/plugin.js untuk mulai mengembangkan.",
+  btnTest: "Coba klik saya",
+};
+\`;
+
 const files = [
   ["plugin.js", pluginJs],
   ["index.html", indexHtml],
   ["style.css", styleCss],
   [path.join("front", "plugin.js"), frontPluginJs],
+  [path.join("front", "locales", "index.mjs"), localesIndexMjs],
+  [path.join("front", "locales", "zh-CN.mjs"), localesZhMjs],
+  [path.join("front", "locales", "en-US.mjs"), localesEnMjs],
+  [path.join("front", "locales", "id-ID.mjs"), localesIdMjs],
 ];
 for (const [rel, content] of files) {
   const dst = path.join(targetDir, rel);
+  fs.mkdirSync(path.dirname(dst), { recursive: true });
   fs.writeFileSync(dst, content, "utf8");
-  console.log(`✓ 生成 ${path.relative(ROOT, dst)}`);
+  console.log(\`✓ 生成 \${path.relative(ROOT, dst)}\`);
 }
 
 // ---- 追加三份装配清单（条目已存在则跳过） ----

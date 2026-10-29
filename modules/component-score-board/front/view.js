@@ -20,15 +20,17 @@ import { iconEl } from "/web/icons.mjs";
 const MAX_TEAMS = 4;
 
 /** props.teams → [{ name, score:0 }]（畸形输入逐级回落：默认双队） */
-function normalizeTeams(teams) {
+function normalizeTeams(teams, ctx) {
   if (!Array.isArray(teams) || teams.length === 0) {
     return [
-      { name: "红方", score: 0 },
-      { name: "蓝方", score: 0 },
+      { name: ctx?.i18n?.t ? ctx.i18n.t("component-score-board.teamDefault1", "红方") : "红方", score: 0 },
+      { name: ctx?.i18n?.t ? ctx.i18n.t("component-score-board.teamDefault2", "蓝方") : "蓝方", score: 0 },
     ];
   }
   return teams.slice(0, MAX_TEAMS).map((t, i) => ({
-    name: t && typeof t.name === "string" && t.name.trim() ? t.name : `队伍${i + 1}`,
+    name: t && typeof t.name === "string" && t.name.trim()
+      ? t.name
+      : (ctx?.i18n?.t ? ctx.i18n.t("component-score-board.teamNumbered", { n: i + 1 }, `队伍${i + 1}`) : `队伍${i + 1}`),
     score: 0,
   }));
 }
@@ -45,7 +47,7 @@ export function createScoreBoard(host, props = {}, ctx) {
   const ctrl = new AbortController();
   const { signal } = ctrl;
 
-  const teams = normalizeTeams(props.teams); // 状态仅内存，工厂局部
+  const teams = normalizeTeams(props.teams, ctx); // 状态仅内存，工厂局部
   const step = normalizeStep(props.step);
 
   // ---- 静态骨架 ----
@@ -66,7 +68,7 @@ export function createScoreBoard(host, props = {}, ctx) {
   const resetBtn = root.querySelector(".score-board__reset");
 
   titleEl.textContent =
-    typeof props.title === "string" && props.title.trim() ? props.title : "计分板";
+    typeof props.title === "string" && props.title.trim() ? props.title : (ctx?.i18n?.t ? ctx.i18n.t("component-score-board.title", "计分板") : "计分板");
 
   /** 图标按钮内容：iconEl 未知名/无 DOM 返回 null，守卫后再 append */
   function setIconBtn(btn, iconName, label, text) {
@@ -91,11 +93,11 @@ export function createScoreBoard(host, props = {}, ctx) {
     nameInput.type = "text";
     nameInput.className = "score-board__name";
     nameInput.value = team.name; // 用户数据走 value 属性，防注入
-    nameInput.setAttribute("aria-label", "队名");
+    nameInput.setAttribute("aria-label", ctx?.i18n?.t ? ctx.i18n.t("component-score-board.teamName", "队名") : "队名");
     nameInput.addEventListener(
       "change",
       () => {
-        team.name = nameInput.value.trim() || `队伍${i + 1}`;
+        team.name = nameInput.value.trim() || (ctx?.i18n?.t ? ctx.i18n.t("component-score-board.teamNumbered", { n: i + 1 }, `队伍${i + 1}`) : `队伍${i + 1}`);
         nameInput.value = team.name;
       },
       { signal }
@@ -110,20 +112,20 @@ export function createScoreBoard(host, props = {}, ctx) {
     minusBtn.type = "button";
     minusBtn.className = "score-board__btn";
     minusBtn.dataset.act = "minus";
-    setIconBtn(minusBtn, "minus", "减分");
+    setIconBtn(minusBtn, "minus", ctx?.i18n?.t ? ctx.i18n.t("component-score-board.minus", "减分") : "减分");
 
     const plusBtn = document.createElement("button");
     plusBtn.type = "button";
     plusBtn.className = "score-board__btn";
     plusBtn.dataset.act = "plus";
-    setIconBtn(plusBtn, "plus", "加分");
+    setIconBtn(plusBtn, "plus", ctx?.i18n?.t ? ctx.i18n.t("component-score-board.plus", "加分") : "加分");
 
     row.append(nameInput, scoreEl, minusBtn, plusBtn);
     bodyEl.append(row);
   });
 
   // ---- 底部清零 ----
-  setIconBtn(resetBtn, "refresh", null, "清零");
+  setIconBtn(resetBtn, "refresh", null, ctx?.i18n?.t ? ctx.i18n.t("component-score-board.resetZero", "清零") : "清零");
 
   /** 分值变更统一出口：clamp 下限 0 → 写内存 → 刷显示 */
   function changeScore(i, delta) {

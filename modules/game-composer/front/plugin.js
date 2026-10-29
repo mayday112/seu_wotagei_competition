@@ -9,11 +9,13 @@
  * 晚到守卫兜底，勿在组件体内 await 挂载后再返回。
  */
 import { createComposerView } from "./view.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "game-composer-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "game-composer",
       component(el, meta, ctx) {

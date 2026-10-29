@@ -134,7 +134,7 @@ export function createDrawMachine(hostEl, props = {}, ctx) {
     trigger = document.createElement("button");
     trigger.type = "button";
     trigger.className = "draw-machine__default-trigger";
-    trigger.textContent = "抽取";
+    trigger.textContent = ctx?.i18n?.t ? ctx.i18n.t("component-draw-machine.draw", "抽取") : "抽取";
     hostEl.append(ownDisplay, trigger);
     ownNodes.push(ownDisplay, trigger);
   }

@@ -6,7 +6,7 @@
  * 并入同一模块作用域：全局函数/变量 → 闭包作用域，函数体逐行保留。
  * 原 main 的 DOMContentLoaded 初始化改由 initPage3() 承接。
  */
-import { showToast, makePageHelpers } from "./gb_common.js";
+import { showToast, makePageHelpers, setCtx, t } from "./gb_common.js";
 
 // ==================== main：状态定义 ====================
 const GBState = {
@@ -117,7 +117,8 @@ function handleStartBattle() {
  * @param {{music: object|null, draw: object|null}} componentBridge 组件实例 API 桥（front/plugin.js 传入）
  * @returns {() => void} cleanup：解绑全部登记监听器与 audio
  */
-function initPage3(componentBridge) {
+function initPage3(componentBridge, ctx) {
+  setCtx(ctx);
   apis = componentBridge || { music: null, draw: null };
   cacheDOM();
   const bindAbort = new AbortController();
@@ -125,8 +126,17 @@ function initPage3(componentBridge) {
 
   loadRound2Data().then(() => {
     if (!GBState.round2Data) {
-      showToast("未找到第二大轮数据，请返回第二大轮", "error");
-      DOM.systemHint.textContent = "请先完成第二大轮";
+      showToast(
+        t(
+          "group-battle.toastRound2DataMissing",
+          "未找到第二大轮数据，请返回第二大轮",
+        ),
+        "error",
+      );
+      DOM.systemHint.textContent = t(
+        "group-battle.hintCompleteRound2First",
+        "请先完成第二大轮",
+      );
       return;
     }
     // setupRound3 完成资源拉取与新开局构建后接存档恢复链（handleReset 不链用，行为不变）
@@ -230,8 +240,19 @@ function setupRound3() {
   });
 }
 
+function translateBracketLabel(label) {
+  if (!label) return "";
+  if (label === "胜者组")
+    return t("group-battle.labelWinnersBracket", "胜者组");
+  if (label === "败者组") return t("group-battle.labelLosersBracket", "败者组");
+  if (label === "败者组决赛")
+    return t("group-battle.labelLosersFinal", "败者组决赛");
+  if (label === "总决赛") return t("group-battle.labelGrandFinal", "总决赛");
+  return label;
+}
+
 function getMusicLibName() {
-  return "四强赛曲库";
+  return t("group-battle.musicLibEx", "四强赛曲库");
 }
 
 function getCurrentMusicLibrary() {
@@ -247,7 +268,11 @@ function updateMusicInfo(trackName, sourceName) {
     DOM.currentMusicLib.textContent = trackName || "-";
   }
   if (DOM.currentMusicSource) {
-    DOM.currentMusicSource.textContent = sourceName ? "曲库：" + sourceName : "";
+    DOM.currentMusicSource.textContent = sourceName
+      ? t("group-battle.musicSourcePrefix", "曲库：{source}", {
+          source: sourceName,
+        })
+      : "";
     DOM.currentMusicSource.classList.toggle("hidden", !sourceName);
   }
 }
@@ -267,7 +292,13 @@ function handleGroupSectionClick(e) {
 function handleSelectGroup(idx) {
   const pending = GBState.bracket.pendingMatches.find((m) => !m.played);
   if (!pending) return;
-  if (idx !== pending.g1 && idx !== pending.g2) { showToast("请按赛程选择指定的组", "warning"); return; }
+  if (idx !== pending.g1 && idx !== pending.g2) {
+    showToast(
+      t("group-battle.toastSelectScheduledGroup", "请按赛程选择指定的组"),
+      "warning",
+    );
+    return;
+  }
   const card = document.getElementById("group-card-" + idx);
   if (selectedGroupIdxs.includes(idx)) {
     selectedGroupIdxs = selectedGroupIdxs.filter((i) => i !== idx);
@@ -290,7 +321,10 @@ function confirmGroupSelection() {
   GBState.phase = "selecting_players";
   selectedGroupIdxs = [];
   saveState(); renderAll();
-  showToast("请从两组中各1名出战选手", "info");
+  showToast(
+    t("group-battle.toastSelect1PlayerEach", "请从两组中各选1名出战选手"),
+    "info",
+  );
 }
 
 // ==================== 选手选择 ====================
@@ -330,14 +364,23 @@ function handleMemberClick(groupIdx, playerName, e) {
       if (match.defender !== null) enterReadyPhase();
       return;
     }
-    if (match.challenger === null && groupIdx === match.defender.groupIdx) { showToast("请选择另一组的成员", "warning"); return; }
+    if (match.challenger === null && groupIdx === match.defender.groupIdx) {
+      showToast(
+        t("group-battle.toastSelectOtherGroup", "请选择另一组的成员"),
+        "warning",
+      );
+      return;
+    }
   }
 }
 
 function enterReadyPhase() {
   GBState.phase = "ready_to_battle";
   saveState(); renderAll();
-  showToast("选手已就位！请先抽取音乐", "info");
+  showToast(
+    t("group-battle.toastPlayersReadyDraw", "选手已就位！请先抽取音乐"),
+    "info",
+  );
 }
 
 // ==================== 组件接入（抽取动画 / 播放+比赛模式）====================
@@ -357,7 +400,8 @@ function enterReadyPhase() {
  * stopMusicPlaying / handleBattleModeClick / handleDoubleClick 的动画、遮罩、打字、定时器、
  * document 监听、battle-mode 类全部由组件接管；phase 状态机与业务收尾逻辑在此逐行对应保留。
  */
-export function componentProps3(bridge) {
+export function componentProps3(bridge, ctx) {
+  if (ctx) setCtx(ctx);
   return {
     "music-player": {
       items: () => getCurrentMusicLibrary(),
@@ -373,7 +417,7 @@ export function componentProps3(bridge) {
         textMs: 130,
         readyMs: 4500,
         hintMs: 1500,
-        hintText: "双击任意位置停止",
+        hintText: t("tournament.stopHint", "双击任意位置停止"),
         hintId: null,
         skipOnClick: true,
       },
@@ -387,26 +431,42 @@ export function componentProps3(bridge) {
       onStarted: () => {
         GBState.phase = "battling";
         saveState(); renderAll();
-        showToast("音乐播放中，可直接点胜者或双击停止音乐", "info");
+        showToast(
+          t(
+            "group-battle.toastMusicPlaying",
+            "音乐播放中，可直接点胜者或双击停止音乐",
+          ),
+          "info",
+        );
       },
       // 退出收尾：ended 只提示（phase 已是 battling）；user/toggle/manual/error = 原 stopMusicPlaying
       onExited: ({ reason }) => {
         if (reason === "ended") {
           showToast(
-            "音乐播放完毕，可继续判定胜者或点击开始比赛重新播放",
+            t(
+              "group-battle.toastMusicEnded",
+              "音乐播放完毕，可继续判定胜者或点击开始比赛重新播放",
+            ),
             "info",
           );
           return;
         }
         GBState.phase = "battling";
         saveState(); renderAll();
-        showToast("音乐已停止，请点击胜者", "info");
+        showToast(
+          t("group-battle.toastMusicStoppedSelectWinner", "音乐已停止，请点击胜者"),
+          "info",
+        );
       },
       onError: (err) => {
         console.error("音乐播放失败:", err);
-        showToast("音乐播放失败，已跳过音频播放", "warning");
+        showToast(
+          t("group-battle.toastMusicPlayFailed", "音乐播放失败，已跳过音频播放"),
+          "warning",
+        );
       },
-      onEmpty: () => showToast("请先抽取音乐", "warning"),
+      onEmpty: () =>
+        showToast(t("group-battle.toastDrawMusicFirst", "请先抽取音乐"), "warning"),
     },
     "draw-machine": {
       items: () => getCurrentMusicLibrary(),
@@ -426,9 +486,17 @@ export function componentProps3(bridge) {
         GBState.phase = "music_drawn";
         updateMusicInfo(item, getMusicLibName());
         saveState(); renderAll();
-        showToast("已抽取音乐：" + item + "  曲库：" + getMusicLibName(), "success");
+        showToast(
+          t(
+            "group-battle.toastMusicDrawn",
+            "已抽取音乐：{item}  曲库：{lib}",
+            { item, lib: getMusicLibName() },
+          ),
+          "success",
+        );
       },
-      onEmpty: () => showToast("音乐列表为空", "error"),
+      onEmpty: () =>
+        showToast(t("group-battle.toastMusicListEmpty", "音乐列表为空"), "error"),
     },
   };
 }
@@ -438,7 +506,11 @@ function selectArenaWinner(arenaIdx) {
   if (GBState.phase !== "battling") return;
   const match = GBState.currentMatch;
   if (!match.defender || !match.challenger) return;
-  const p1IsDefender = DOM.arenaRole1.textContent === "选手1";
+  const p1IsDefender =
+    DOM.arenaRole1.dataset.role === "defender" ||
+    DOM.arenaRole1.dataset.role === "player1" ||
+    DOM.arenaRole1.textContent === "守擂者" ||
+    DOM.arenaRole1.textContent === "选手1";
   let winner, loser;
   if (arenaIdx === 0) { winner = p1IsDefender ? match.defender : match.challenger; loser = p1IsDefender ? match.challenger : match.defender; }
   else { winner = p1IsDefender ? match.challenger : match.defender; loser = p1IsDefender ? match.defender : match.challenger; }
@@ -462,12 +534,25 @@ function finishMatch(winnerGroupIdx, loserGroupIdx) {
   pushUndo({ type: "finish_match", winnerGroupIdx, loserGroupIdx });
   GBState.phase = "match_end";
   saveState(); renderAll();
-  showToast(GBState.groups[winnerGroupIdx].id + "组获胜！", "success");
+  showToast(
+    t("group-battle.toastGroupWins", "{group}组获胜！", {
+      group: GBState.groups[winnerGroupIdx].id,
+    }),
+    "success",
+  );
 }
 
 // ==================== 进入下一场 / 比赛结束 ====================
 function handleResetMatch() {
-  if (!confirm("确定要重置当前对战吗？已完成场次将保留。")) return;
+  if (
+    !confirm(
+      t(
+        "group-battle.confirmResetMatch3",
+        "确定要重置当前对战吗？已完成场次将保留。",
+      ),
+    )
+  )
+    return;
   const match = GBState.currentMatch;
   if (match.loser) {
     const g = GBState.groups[match.loser.groupIdx];
@@ -487,18 +572,33 @@ function handleResetMatch() {
   player.pause(); player.currentTime = 0; player.src = "";
   if (apis.music) apis.music.clearItem(); // 同步组件内部 current
   saveState(); renderAll();
-  showToast("当前对战已重置，请重新选择出战选手", "success");
+  showToast(
+    t(
+      "group-battle.toastMatchReset",
+      "当前对战已重置，请重新选择出战选手",
+    ),
+    "success",
+  );
 }
 
 function handleNextMatch() {
-  if (GBState.phase !== "match_end") { showToast("请先完成当前场次", "warning"); return; }
+  if (GBState.phase !== "match_end") {
+    showToast(
+      t("group-battle.toastFinishCurrentMatchFirst", "请先完成当前场次"),
+      "warning",
+    );
+    return;
+  }
   const pending = GBState.bracket.pendingMatches.find((m) => !m.played);
   if (pending) {
     GBState.currentMatch = { group1Idx: null, group2Idx: null, defender: null, challenger: null, winner: null, loser: null, duelHistory: [], matchWinnerGroupIdx: null, matchLoserGroupIdx: null };
     GBState.phase = "selecting_groups";
     selectedGroupIdxs = [];
     saveState(); renderAll();
-    showToast("请进行下一场对战", "info");
+    showToast(
+      t("group-battle.toastProceedNextMatch", "请进行下一场对战"),
+      "info",
+    );
   } else {
     const hasGrandFinal = GBState.bracket.completedMatches.some((m) => m.label === "总决赛");
     if (!hasGrandFinal && GBState.grandFinalSeedGroupIdx !== null) {
@@ -514,12 +614,24 @@ function handleNextMatch() {
         GBState.phase = "selecting_groups";
         selectedGroupIdxs = [];
         saveState(); renderAll();
-        showToast("败者组决赛结束，进入总决赛", "success");
+        showToast(
+          t(
+            "group-battle.toastEnterGrandFinal",
+            "败者组决赛结束，进入总决赛",
+          ),
+          "success",
+        );
         return;
       }
     }
 
-    showToast("全部比赛结束！即将自动跳转结果页", "success");
+    showToast(
+      t(
+        "group-battle.toastAllMatchesComplete",
+        "全部比赛结束！即将自动跳转结果页",
+      ),
+      "success",
+    );
     setTimeout(() => {
       // 1.5s 窗口内用户撤销/重置等改变了相位则不再自动跳转（对齐 page1 同款守卫）
       if (GBState.phase === "match_end") handleFinish();
@@ -588,19 +700,64 @@ function renderVisibility() {
 
 function renderStatus() {
   const pending = GBState.bracket.pendingMatches.find((m) => !m.played);
-  DOM.bracketStatus.textContent = pending ? "第三大轮 - " + pending.label : "第三大轮 - 结束";
+  DOM.bracketStatus.textContent = pending
+    ? t("group-battle.bracketStatusRound3Stage", "第三大轮 - {stage}", {
+        stage: translateBracketLabel(pending.label),
+      })
+    : t("group-battle.bracketStatusRound3End", "第三大轮 - 结束");
   let hint = "";
   switch (GBState.phase) {
-    case "loading": hint = "加载中..."; break;
-    case "selecting_groups": hint = "请选择对战的两个组" + (pending ? "（" + GBState.groups[pending.g1].id + "组 vs " + GBState.groups[pending.g2].id + "组）" : ""); break;
-    case "selecting_players": hint = "请从两组中各选1名出战选手（再次点击可回归）"; break;
-    case "ready_to_battle": hint = "请点击「抽取音乐」"; break;
-    case "music_drawn": hint = "请点击「开始比赛」开始对战"; break;
-    case "music_playing": hint = "音乐播放中，双击屏幕结束播放"; break;
-    case "battling": hint = "对战开始！请点击胜者  当前曲库：" + getMusicLibName(); break;
-    case "selecting_winner_anim": hint = "结果确认中..."; break;
-    case "match_end": hint = "本场结束"; break;
-    default: hint = "...";
+    case "loading":
+      hint = t("common.loading", "加载中...");
+      break;
+    case "selecting_groups":
+      hint = pending
+        ? t(
+            "group-battle.hintSelectingGroupsWithPair",
+            "请选择对战的两个组（{g1}组 vs {g2}组）",
+            {
+              g1: GBState.groups[pending.g1].id,
+              g2: GBState.groups[pending.g2].id,
+            },
+          )
+        : t("group-battle.hintSelectingGroups", "请选择对战的两个组");
+      break;
+    case "selecting_players":
+      hint = t(
+        "group-battle.hintSelectingPlayers",
+        "请从两组中各选1名出战选手（再次点击可回归）",
+      );
+      break;
+    case "ready_to_battle":
+      hint = t("group-battle.hintReadyToBattle2", "请点击「抽取音乐」");
+      break;
+    case "music_drawn":
+      hint = t(
+        "group-battle.hintMusicDrawn2",
+        "请点击「开始比赛」开始对战",
+      );
+      break;
+    case "music_playing":
+      hint = t(
+        "group-battle.hintMusicPlaying",
+        "音乐播放中，双击屏幕结束播放",
+      );
+      break;
+    case "battling":
+      hint = t(
+        "group-battle.hintBattlingWithLib",
+        "对战开始！请点击胜者  当前曲库：{lib}",
+        { lib: getMusicLibName() },
+      );
+      break;
+    case "selecting_winner_anim":
+      hint = t("group-battle.hintConfirmingWinner", "结果确认中...");
+      break;
+    case "match_end":
+      hint = t("group-battle.hintMatchEnd", "本场结束");
+      break;
+    default:
+      hint = "...";
   }
   DOM.systemHint.textContent = hint;
 
@@ -629,7 +786,11 @@ function renderGroups() {
     if (group.status === "eliminated") card.classList.add("eliminated");
     const title = document.createElement("h3");
     title.className = "group-title";
-    title.textContent = "Group " + group.id + " (" + group.wins + "胜 " + group.losses + "负)";
+    title.textContent = t(
+      "group-battle.groupCardTitle",
+      "Group {id} ({wins}胜 {losses}负)",
+      { id: group.id, wins: group.wins, losses: group.losses },
+    );
     card.appendChild(title);
     const membersDiv = document.createElement("div");
     membersDiv.className = "group-members";
@@ -680,21 +841,42 @@ function renderArena() {
   if (!match.defender && !match.challenger) {
     DOM.arenaPlayer1Name.textContent = "?"; DOM.arenaPlayer2Name.textContent = "?";
     DOM.arenaGroup1Label.textContent = "-"; DOM.arenaGroup2Label.textContent = "-";
-    DOM.arenaRole1.textContent = "-"; DOM.arenaRole2.textContent = "-";
+    DOM.arenaRole1.textContent = "-"; DOM.arenaRole1.dataset.role = "";
+    DOM.arenaRole2.textContent = "-"; DOM.arenaRole2.dataset.role = "";
     return;
   }
   if (match.defender) {
     DOM.arenaPlayer1Name.textContent = match.defender.playerName;
-    DOM.arenaGroup1Label.textContent = GBState.groups[match.defender.groupIdx].id + "组";
-    DOM.arenaRole1.textContent = "选手1";
+    DOM.arenaGroup1Label.textContent = t(
+      "group-battle.arenaGroupLabel",
+      "{id}组",
+      { id: GBState.groups[match.defender.groupIdx].id },
+    );
+    DOM.arenaRole1.dataset.role = "defender";
+    DOM.arenaRole1.textContent = t("group-battle.rolePlayer1", "选手1");
     DOM.arenaPlayer1.classList.add("filled");
-  } else { DOM.arenaPlayer1Name.textContent = "?"; DOM.arenaGroup1Label.textContent = "-"; DOM.arenaRole1.textContent = "-"; }
+  } else {
+    DOM.arenaPlayer1Name.textContent = "?";
+    DOM.arenaGroup1Label.textContent = "-";
+    DOM.arenaRole1.textContent = "-";
+    DOM.arenaRole1.dataset.role = "";
+  }
   if (match.challenger) {
     DOM.arenaPlayer2Name.textContent = match.challenger.playerName;
-    DOM.arenaGroup2Label.textContent = GBState.groups[match.challenger.groupIdx].id + "组";
-    DOM.arenaRole2.textContent = "选手2";
+    DOM.arenaGroup2Label.textContent = t(
+      "group-battle.arenaGroupLabel",
+      "{id}组",
+      { id: GBState.groups[match.challenger.groupIdx].id },
+    );
+    DOM.arenaRole2.dataset.role = "challenger";
+    DOM.arenaRole2.textContent = t("group-battle.rolePlayer2", "选手2");
     DOM.arenaPlayer2.classList.add("filled");
-  } else { DOM.arenaPlayer2Name.textContent = "?"; DOM.arenaGroup2Label.textContent = "-"; DOM.arenaRole2.textContent = "-"; }
+  } else {
+    DOM.arenaPlayer2Name.textContent = "?";
+    DOM.arenaGroup2Label.textContent = "-";
+    DOM.arenaRole2.textContent = "-";
+    DOM.arenaRole2.dataset.role = "";
+  }
 }
 
 function renderActions() {
@@ -716,7 +898,13 @@ function renderHistory() {
     const g1 = GBState.groups[m.group1].id;
     const g2 = GBState.groups[m.group2].id;
     const winner = GBState.groups[m.winner].id;
-    item.textContent = (m.label || "") + " " + g1 + "组 vs " + g2 + "组 -> " + winner + "组胜";
+    const labelText = translateBracketLabel(m.label || "");
+    const matchText = t(
+      "group-battle.historyItem3",
+      "{g1}组 vs {g2}组 -> {w}组胜",
+      { g1, g2, w: winner },
+    );
+    item.textContent = labelText ? labelText + " " + matchText : matchText;
     DOM.matchHistory.appendChild(item);
   });
 }
@@ -725,7 +913,10 @@ function renderHistory() {
 
 // ==================== 撤消 ====================
 function handleUndo() {
-  if (GBState.undoStack.length === 0) { showToast("没有可撤消的操作", "info"); return; }
+  if (GBState.undoStack.length === 0) {
+    showToast(t("group-battle.toastNothingToUndo", "没有可撤消的操作"), "info");
+    return;
+  }
   const action = GBState.undoStack.pop();
   const match = GBState.currentMatch;
   switch (action.type) {
@@ -746,12 +937,13 @@ function handleUndo() {
       GBState.phase = "match_end"; break;
   }
   saveState(); renderAll();
-  showToast("已撤消上一步操作", "success");
+  showToast(t("group-battle.toastUndone", "已撤消上一步操作"), "success");
 }
 
 // ==================== 重置 & 持久化 ====================
 function handleReset() {
-  if (!confirm("确定要重置第三大轮吗？")) return;
+  if (!confirm(t("group-battle.confirmResetGame3", "确定要重置第三大轮吗？")))
+    return;
   GBState.undoStack = [];
   // 删本页产出键（groupBattleStateR3）；原误删输入键 groupBattleRound2——它是
   // setupRound3 重建赛程的依据，重置第三大轮不应动第二大轮的产出
@@ -761,7 +953,7 @@ function handleReset() {
   fetch("/api/clear-group-battle-process", { method: "POST" }).catch(() => {});
   setupRound3();
   renderAll();
-  showToast("已重置", "success");
+  showToast(t("group-battle.toastResetSuccess", "已重置"), "success");
 }
 
 function saveState() {

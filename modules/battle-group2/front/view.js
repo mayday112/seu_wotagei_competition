@@ -158,6 +158,9 @@ let currentMusicFile = "";
 let persist = null;
 /** 组件实例 API 桥 */
 let apis = { music: null, draw: null };
+/** i18n 上下文与翻译辅助函数 */
+let ctx = null;
+const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
 
 /**
  * 抖动兜底清理：摘除 .shake 类（body + 遮罩文字节点）。
@@ -237,7 +240,7 @@ function loadData() {
     .catch((error) => {
       // 容错统一：不再 alert() 阻塞页面，降级为"沿用上次可用列表"并继续
       console.warn("[battle-group2] 加载player2.json失败，将使用默认数据:", error);
-      showToast("无法加载选手数据，将使用默认数据", "warning");
+      showToast(t("battle-group2.loadPlayersError", "无法加载选手数据，将使用默认数据"), "warning");
       AppState.players = [...AppState.originalPlayers];
       updatePlayerList();
     });
@@ -255,7 +258,7 @@ function loadData() {
     .catch((error) => {
       console.warn("[battle-group2] 加载技名数据失败，将使用空列表:", error);
       AppState.tricks = [];
-      showToast("无法加载技名数据，将使用默认数据", "warning");
+      showToast(t("battle-group2.loadTricksError", "无法加载技名数据，将使用默认数据"), "warning");
     });
 
   // 读取音乐列表数据 - 从musics_list_2.json加载（加载期一次性；抽取时不再重复 fetch）
@@ -271,7 +274,7 @@ function loadData() {
     .catch((error) => {
       console.warn("[battle-group2] 加载音乐列表失败，将使用空列表:", error);
       AppState.musicList = [];
-      showToast("无法加载音乐列表，将使用默认数据", "warning");
+      showToast(t("battle-group2.loadMusicError", "无法加载音乐列表，将使用默认数据"), "warning");
     });
 }
 
@@ -360,8 +363,11 @@ function restoreFromState(data) {
     }
 
     // 恢复当前技能
+    const trickPlaceholders = ["抽取技名", "Draw Trick", "Undi Gerakan", t("battle-group2.trickPlaceholder", "抽取技名")];
     if (data.currentTrick) {
-      DOM.currentTrick.textContent = data.currentTrick;
+      DOM.currentTrick.textContent = trickPlaceholders.includes(data.currentTrick)
+        ? t("battle-group2.trickPlaceholder", "抽取技名")
+        : data.currentTrick;
     }
 
     // 恢复当前音乐（播放状态归 music-player 组件：setItem 同步展示并预载 audio.src）
@@ -369,8 +375,12 @@ function restoreFromState(data) {
     //   展示文本可能是初始占位「抽取音乐」（未抽取即离开页面时被 beforeunload 落盘），
     //   误当曲目 setItem 会导致点播放误入比赛模式后必败——与 battle-group2-2 同款防线。
     //   老档无该字段 → 只还原展示文本，点播放按未抽取处理（提示「请先抽取音乐」）。
+    const musicPlaceholders = ["抽取音乐", "Draw Music", "Undi Musik", t("battle-group2.musicPlaceholder", "抽取音乐")];
     if (data.currentMusic) {
-      DOM.currentMusic.textContent = data.currentMusic;
+      DOM.currentMusic.textContent =
+        !data.currentMusicFile && musicPlaceholders.includes(data.currentMusic)
+          ? t("battle-group2.musicPlaceholder", "抽取音乐")
+          : data.currentMusic;
       currentMusicFile =
         typeof data.currentMusicFile === "string" && data.currentMusicFile
           ? data.currentMusicFile
@@ -418,14 +428,14 @@ function restoreCrossedTricks(crossedTricks) {
 function clearCache() {
   try {
     // 先确认用户真的要清除
-    if (!confirm("确定要清除所有缓存数据吗？此操作将重置所有比赛进度。")) {
+    if (!confirm(t("battle-group2.clearCacheConfirm", "确定要清除所有缓存数据吗？此操作将重置所有比赛进度。"))) {
       return;
     }
 
     // 显示进度提示
     const loadingMsg = document.createElement("div");
     loadingMsg.classList.add("loading-toast");
-    loadingMsg.innerText = "正在初始化比赛数据...";
+    loadingMsg.innerText = t("battle-group2.initializingData", "正在初始化比赛数据...");
     document.body.appendChild(loadingMsg);
 
     // 清除浏览器缓存（5 个历史 key，由 storage 适配层统一清除）
@@ -434,7 +444,7 @@ function clearCache() {
       .reset() // 本模块无独立 clear 端点：仅清本地，服务端由下一步覆写为初始态
       .then(() => fetch("/resource/json/player2.json"))
       .then((response) => {
-        if (!response.ok) throw new Error("无法加载选手数据");
+        if (!response.ok) throw new Error(t("battle-group2.loadPlayersFailed", "无法加载选手数据"));
         return response.json();
       })
       .then((data) => {
@@ -461,15 +471,17 @@ function clearCache() {
           AppState.currentPlayerIndex = 0;
           DOM.currentPlayer.textContent = AppState.players[0].name;
           updatePlayerList();
+        } else {
+          DOM.currentPlayer.textContent = t("battle-group2.playerPlaceholder", "打师名");
         }
         // 索引已归零：终局后清除缓存同样要把按钮从"进入排名页面"恢复为"下一位"
         syncNextPlayerButton();
 
         // 重置其他显示（音乐展示/播放状态归 music-player 组件）
-        DOM.currentTrick.textContent = "";
-        DOM.currentMusic.textContent = "";
         currentMusicFile = "";
         if (apis.music) apis.music.clearItem();
+        DOM.currentTrick.textContent = t("battle-group2.trickPlaceholder", "抽取技名");
+        DOM.currentMusic.textContent = t("battle-group2.musicPlaceholder", "抽取音乐");
 
         // 移除加载提示
         if (document.body.contains(loadingMsg)) {
@@ -477,7 +489,7 @@ function clearCache() {
         }
 
         // 显示成功提示
-        showToast("比赛数据已初始化", "success");
+        showToast(t("battle-group2.dataInitialized", "比赛数据已初始化"), "success");
 
         // 更新技名列表，清除所有交叉状态
         updateTrickList();
@@ -491,11 +503,17 @@ function clearCache() {
         }
 
         // 显示错误提示
-        showToast("初始化服务器数据失败: " + error.message, "error");
+        showToast(
+          t("battle-group2.initServerError", "初始化服务器数据失败: {error}", { error: error.message }),
+          "error"
+        );
       });
   } catch (error) {
     console.error("清除缓存失败:", error);
-    showToast("清除缓存失败: " + error.message, "error");
+    showToast(
+      t("battle-group2.clearCacheError", "清除缓存失败: {error}", { error: error.message }),
+      "error"
+    );
   }
 }
 
@@ -567,7 +585,7 @@ function showToast(message, type = "info", duration = 3000) {
 function shufflePlayers() {
   // 容错：选手列表为空时不再任由 `players[0].name` 抛 TypeError（与 battle-group2-2 同款守卫）
   if (AppState.players.length === 0) {
-    showToast("没有可排序的选手", "warning");
+    showToast(t("battle-group2.noPlayersToShuffle", "没有可排序的选手"), "warning");
     return;
   }
 
@@ -580,13 +598,13 @@ function shufflePlayers() {
   syncNextPlayerButton(); // 终局后洗牌：索引归零，按钮由"进入排名页面"恢复为"下一位"
   saveState();
 
-  showToast("选手已随机排序", "success");
+  showToast(t("battle-group2.playersShuffled", "选手已随机排序"), "success");
 }
 
 // 抽取技名
 function drawRandomTrick() {
   if (localStorage.getItem("feature_group2_draw_trick_enabled") === "false") {
-    showToast("抽取动作功能已在设置页关闭", "info");
+    showToast(t("battle-group2.drawTrickDisabled", "抽取动作功能已在设置页关闭"), "info");
     return;
   }
 
@@ -595,7 +613,7 @@ function drawRandomTrick() {
   );
 
   if (availableTricks.length === 0) {
-    showToast("没有可用的技名", "warning");
+    showToast(t("battle-group2.noAvailableTricks", "没有可用的技名"), "warning");
     return;
   }
 
@@ -619,8 +637,10 @@ function drawRandomTrick() {
  */
 function syncNextPlayerButton() {
   if (!DOM.nextPlayerButton) return;
-  const finished = AppState.currentPlayerIndex >= AppState.players.length;
-  DOM.nextPlayerButton.textContent = finished ? "进入排名页面" : "下一位";
+  const allPlayersCompleted = AppState.currentPlayerIndex >= AppState.players.length;
+  DOM.nextPlayerButton.textContent = allPlayersCompleted
+    ? t("battle-group2.enterRanking", "进入排名页面")
+    : t("battle-group2.nextPlayer", "下一位");
 }
 
 // 进入下一位选手（单入口：终局判定在函数体内，监听常驻不摘）
@@ -684,7 +704,8 @@ function setupEventListeners(signal) {
  *   music-player  : 接管 #playMusicButton（播放/比赛模式/退出），并负责按钮文案切换
  *   串联          : draw 定格 → bridge.music.setItem(item)（同步展示 + 预载 audio.src）
  */
-export function componentProps(bridge) {
+export function componentProps(bridge, componentCtx) {
+  if (componentCtx) ctx = componentCtx;
   return {
     "music-player": {
       items: () => AppState.musicList,
@@ -698,20 +719,20 @@ export function componentProps(bridge) {
         bridge.music = api;
       },
       // 未抽到音乐即点播放（迁移前 handlePlayMusic 的提示文案逐字保留）
-      onEmpty: () => showToast("请先抽取音乐", "warning"),
+      onEmpty: () => showToast(t("battle-group2.pleaseDrawMusicFirst", "请先抽取音乐"), "warning"),
       // 比赛模式抖动：组件在"进入模式、遮罩显示、逐字动画开始前"回调 ——
       // 迁移前抖动发生在进入模式瞬间（body）与逐字动画走完时（文字），而非真正开播的 4500ms
       onOverlayShown: shakeBattleOverlay,
       // 迁移前 startMusicMode 在真正开播时把按钮改成「停止播放音乐」
       onStarted: () => {
-        if (DOM.playMusicButton) DOM.playMusicButton.textContent = "停止播放音乐";
+        if (DOM.playMusicButton) DOM.playMusicButton.textContent = t("battle-group2.stopMusic", "停止播放音乐");
       },
       // 迁移前 stopMusicMode 还原按钮文案
       onExited: () => {
-        if (DOM.playMusicButton) DOM.playMusicButton.textContent = "播放音乐";
+        if (DOM.playMusicButton) DOM.playMusicButton.textContent = t("battle-group2.playMusic", "播放音乐");
       },
       // 迁移前 playCurrentMusic 的失败提示
-      onError: () => showToast("音乐播放失败，请重试", "error"),
+      onError: () => showToast(t("battle-group2.musicPlayFailed", "音乐播放失败，请重试"), "error"),
     },
     "draw-machine": {
       items: () => AppState.musicList,
@@ -722,7 +743,7 @@ export function componentProps(bridge) {
       onReady: (api) => {
         bridge.draw = api;
       },
-      onEmpty: () => showToast("音乐列表为空", "error"),
+      onEmpty: () => showToast(t("battle-group2.musicListEmpty", "音乐列表为空"), "error"),
       onResult: (item) => {
         const displayName = String(item).replace(/\.mp3$/, "");
         // 确保音乐文件路径正确（曲库目录经组件的 folder prop 提供）；item 是真实文件名，
@@ -730,7 +751,7 @@ export function componentProps(bridge) {
         currentMusicFile = String(item);
         if (bridge.music) bridge.music.setItem(item);
         saveState();
-        showToast(`已选择音乐: ${displayName}`, "success");
+        showToast(t("battle-group2.musicSelected", "已选择音乐: {name}", { name: displayName }), "success");
       },
     },
   };
@@ -739,7 +760,8 @@ export function componentProps(bridge) {
 /* =================================================================
  *  组件入口（原 b-g2-core.js DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
-export function battleGroup2Component(el, meta, ctx, bridge) {
+export function battleGroup2Component(el, meta, componentCtx, bridge) {
+  ctx = componentCtx;
   // cleanup 契约：静态骨架节点与动态列表项的监听经 signal 登记，重渲染时 abort 统一解绑，
   // 防止不刷新页面的重复 render 造成双绑双触发
   const bindAbort = new AbortController();

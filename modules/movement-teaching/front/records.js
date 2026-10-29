@@ -28,7 +28,7 @@ async function initializeData() {
     console.log("记录数据初始化完成");
   } catch (error) {
     console.error("初始化记录数据失败:", error);
-    showToast("加载记录数据失败", "error");
+    showToast(t("movement-teaching.loadRecordsFailed", "加载记录数据失败"), "error");
   }
 }
 
@@ -58,7 +58,7 @@ async function loadRecords() {
     console.log(`成功加载 ${R.records.length} 条记录`);
   } catch (error) {
     console.error("加载记录数据失败:", error);
-    showToast("无法连接到服务器", "error");
+    showToast(t("movement-teaching.cannotConnectServer", "无法连接到服务器"), "error");
     R.records = [];
   } finally {
     R.isLoading = false;
@@ -68,7 +68,7 @@ async function loadRecords() {
 // 删除单条记录
 async function deleteRecord(id) {
   try {
-    showToast("正在删除记录...", "info");
+    showToast(t("movement-teaching.deletingRecord", "正在删除记录..."), "info");
 
     const response = await fetch(`/api/movement-partys/${id}`, {
       method: "DELETE",
@@ -84,11 +84,11 @@ async function deleteRecord(id) {
     // 从记录列表中移除（响应式：行与统计自动更新）
     R.records = R.records.filter((record) => record.id !== id);
 
-    showToast("记录已删除", "success");
+    showToast(t("movement-teaching.recordDeleted", "记录已删除"), "success");
     return true;
   } catch (error) {
     console.error("删除记录失败:", error);
-    showToast(`删除记录失败: ${error.message}`, "error");
+    showToast(t("movement-teaching.deleteRecordFailed", `删除记录失败: ${error.message}`, { reason: error.message }), "error");
     return false;
   }
 }
@@ -107,11 +107,11 @@ async function clearAllRecords() {
     // 清空记录列表（响应式：行与统计自动更新）
     R.records = [];
 
-    showToast("所有记录已清空", "success");
+    showToast(t("movement-teaching.recordsCleared", "所有记录已清空"), "success");
     return true;
   } catch (error) {
     console.error("清空记录失败:", error);
-    showToast("清空记录失败", "error");
+    showToast(t("movement-teaching.clearRecordsFailed", "清空记录失败"), "error");
     return false;
   }
 }
@@ -193,14 +193,14 @@ function refreshRecords() {
   if (R) R.query = "";
   // 重新加载记录
   loadRecords().then(() => {
-    showToast("记录已刷新", "info");
+    showToast(t("movement-teaching.recordsRefreshed", "记录已刷新"), "info");
   });
 }
 
 // 确认清空所有记录
 function confirmClearAllRecords() {
   showConfirmDialog(
-    "确定要清空所有游戏记录吗？此操作无法撤销。",
+    t("movement-teaching.confirmClearRecords", "确定要清空所有游戏记录吗？此操作无法撤销。"),
     clearAllRecords
   );
 }
@@ -208,7 +208,7 @@ function confirmClearAllRecords() {
 // 确认删除单条记录
 function confirmDeleteRecord(id) {
   showConfirmDialog(
-    "确定要删除此条记录吗？",
+    t("movement-teaching.confirmDeleteRecord", "确定要删除此条记录吗？"),
     () => deleteRecord(parseInt(id)) // 确保id是数字类型
   );
 }
@@ -225,6 +225,7 @@ function showConfirmDialog(message, onConfirm) {
  *  组件入口（原两个 DOMContentLoaded 初始化 + 顶层 DOM 缓存，kernel render 时执行）
  * ================================================================= */
 export function initMovementTeachingRecords(ctx) {
+  const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
   // cleanup 契约：静态骨架监听经 signal 登记，重渲染时 abort 统一解绑
   const bindAbort = new AbortController();
   const { signal } = bindAbort;
@@ -244,9 +245,9 @@ export function initMovementTeachingRecords(ctx) {
 
   // 静态骨架图标：刷新 / 清空 / 搜索按钮（原 HTML 内 emoji，此处注入 Tabler SVG）
   const staticIcons = [
-    [DOM.refreshBtn, "refresh", "刷新记录列表"],
-    [DOM.clearAllBtn, "trash", "清空所有记录"],
-    [DOM.searchBtn, "search", "搜索"],
+    [DOM.refreshBtn, "refresh", t("movement-teaching.refreshRecords", "刷新记录列表")],
+    [DOM.clearAllBtn, "trash", t("movement-teaching.clearAllRecords", "清空所有记录")],
+    [DOM.searchBtn, "search", t("movement-teaching.search", "搜索")],
   ];
   for (const [btn, name, label] of staticIcons) {
     const host = btn && btn.querySelector(".icon");
@@ -257,22 +258,22 @@ export function initMovementTeachingRecords(ctx) {
   // P11-R1：先建响应式视图（记录表 + 统计卡），数据加载写入 R.records 后自动渲染
   const pencilCheck = icon("check", { size: 16 });
   const pencilX = icon("x", { size: 16 });
-  const pencilTrash = icon("trash", { size: 16, label: "删除记录" });
+  const pencilTrash = icon("trash", { size: 16, label: t("movement-teaching.deleteRecordTitle", "删除记录") });
 
   const TABLE_TPL = `
-<tr class="loading-row" v-if="isLoading"><td colspan="6">正在加载记录...</td></tr>
-<tr class="empty-row" v-if="!isLoading && filtered().length === 0"><td colspan="6">暂无游戏记录</td></tr>
+<tr class="loading-row" v-if="isLoading"><td colspan="6">${t("movement-teaching.loadingRecords", "正在加载记录...")}</td></tr>
+<tr class="empty-row" v-if="!isLoading && filtered().length === 0"><td colspan="6">${t("movement-teaching.noRecords", "暂无游戏记录")}</td></tr>
 <tr v-for="record in isLoading ? [] : filtered()" :key="record.id" :data-id="record.id">
   <td>{{ record.teamName }}</td>
   <td>{{ record.trickName }}</td>
   <td>{{ formatTime(record.duration) }}</td>
   <td :class="record.isGuessCorrect ? 'correct' : 'incorrect'">
-    {{ record.isGuessCorrect ? "猜中" : "未猜中" }}<span v-html="record.isGuessCorrect ? checkIcon : xIcon"></span>
+    {{ record.isGuessCorrect ? guessedText : notGuessedText }}<span v-html="record.isGuessCorrect ? checkIcon : xIcon"></span>
   </td>
   <td>{{ formatDate(record.date) }}</td>
   <td>
     <div class="record-actions">
-      <button class="btn-icon btn-delete" title="删除记录" @click="confirmDelete(record.id)">
+      <button class="btn-icon btn-delete" :title="deleteTitle" @click="confirmDelete(record.id)">
         <span class="icon" v-html="trashIcon"></span>
       </button>
     </div>
@@ -281,15 +282,15 @@ export function initMovementTeachingRecords(ctx) {
 
   const STATS_TPL = `
 <div class="stat-card">
-  <h3>总记录数</h3>
+  <h3>${t("movement-teaching.totalRecords", "总记录数")}</h3>
   <p id="total-records" v-effect="pulse($el, stats().totalRecords)">{{ stats().totalRecords }}</p>
 </div>
 <div class="stat-card">
-  <h3>猜中率</h3>
+  <h3>${t("movement-teaching.guessRate", "猜中率")}</h3>
   <p id="correct-percentage" v-effect="pulse($el, stats().correctPercentage)">{{ stats().correctPercentage }}%</p>
 </div>
 <div class="stat-card">
-  <h3>平均时间</h3>
+  <h3>${t("movement-teaching.averageTime", "平均时间")}</h3>
   <p id="average-time" v-effect="pulse($el, stats().averageTime)">{{ formatTime(stats().averageTime) }}</p>
 </div>`;
 
@@ -324,6 +325,9 @@ export function initMovementTeachingRecords(ctx) {
       checkIcon: pencilCheck,
       xIcon: pencilX,
       trashIcon: pencilTrash,
+      guessedText: t("movement-teaching.guessed", "猜中"),
+      notGuessedText: t("movement-teaching.notGuessed", "未猜中"),
+      deleteTitle: t("movement-teaching.deleteRecordTitle", "删除记录"),
       // 派生视图（闭包函数直挂：内部经闭包引用 R，不依赖 this 绑定）
       filtered() {
         const q = (this.query || "").trim().toLowerCase();

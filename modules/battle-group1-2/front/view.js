@@ -60,6 +60,8 @@ const later = (fn, ms) => timers.later(fn, ms);
 let persist = null;
 /* 组件实例 API 桥（front/plugin.js 传入、组件 onReady 回填；组件缺失时保持 null） */
 let apis = { music: null, draw: null };
+/* i18n 翻译辅助（组件入口绑定 ctx.i18n，缺省回退 fb） */
+let translate = (key, fb, params) => fb;
 
 /**
  * 抖动兜底清理：摘除 .shake 类（body + 遮罩文字节点）。
@@ -187,20 +189,20 @@ function mountWinnerBadges() {
 // 初始化数据
 function initializeData() {
   // 显示加载提示
-  showToast("正在加载数据...", "info");
+  showToast(translate("battle-group1-2.toastLoadingData", "正在加载数据..."), "info");
 
   // 并行加载所有数据
   Promise.all([loadPlayers(), loadMusic()])
     .then(() => {
       console.log("所有数据加载完成");
-      showToast("数据加载完成", "success");
+      showToast(translate("battle-group1-2.toastDataLoaded", "数据加载完成"), "success");
 
       // 初始化游戏
       initializeGameState();
     })
     .catch((error) => {
       console.error("数据加载失败:", error);
-      showToast("数据加载失败，请刷新页面重试", "error");
+      showToast(translate("battle-group1-2.toastDataLoadError", "数据加载失败，请刷新页面重试"), "error");
     });
 }
 
@@ -225,7 +227,8 @@ function playersFromWinners(winners) {
 function padDefaultPlayers(winners) {
   const padded = [...winners];
   while (padded.length < 4) {
-    padded.push(`默认选手${padded.length + 1}`);
+    const n = padded.length + 1;
+    padded.push(translate("battle-group1-2.defaultPlayer", `默认选手${n}`, { n }));
   }
   return padded;
 }
@@ -324,7 +327,7 @@ function loadPlayers() {
           "[battle-group1-2] winners 数据不可用（缺少 chapter1 或为空），将使用默认数据:",
           data
         );
-        showToast("获胜者数据不可用，将使用默认数据", "warning");
+        showToast(translate("battle-group1-2.toastWinnersFallback", "获胜者数据不可用，将使用默认数据"), "warning");
       } else if (winners.length < 4) {
         console.warn(
           `获胜者数据不足，只找到${winners.length}名获胜者，需要4名`
@@ -346,14 +349,14 @@ function loadPlayers() {
     .catch((error) => {
       // 网络/解析失败：同样降级为默认数据，不阻断流程
       console.warn("[battle-group1-2] 加载选手数据失败，将使用默认数据:", error);
-      showToast("加载选手数据失败，将使用默认数据", "warning");
+      showToast(translate("battle-group1-2.toastPlayersFallback", "加载选手数据失败，将使用默认数据"), "warning");
 
       // 创建默认选手
       const defaultPlayers = [
-        { name: "选手1", wins: 0, losses: 0 },
-        { name: "选手2", wins: 0, losses: 0 },
-        { name: "选手3", wins: 0, losses: 0 },
-        { name: "选手4", wins: 0, losses: 0 },
+        { name: translate("battle-group1-2.fallbackPlayer", "选手1", { n: 1 }), wins: 0, losses: 0 },
+        { name: translate("battle-group1-2.fallbackPlayer", "选手2", { n: 2 }), wins: 0, losses: 0 },
+        { name: translate("battle-group1-2.fallbackPlayer", "选手3", { n: 3 }), wins: 0, losses: 0 },
+        { name: translate("battle-group1-2.fallbackPlayer", "选手4", { n: 4 }), wins: 0, losses: 0 },
       ];
       BattleState.players = defaultPlayers;
       BattleState.playersLoaded = true;
@@ -401,7 +404,7 @@ function loadMusic() {
     })
     .catch((error) => {
       console.error("音乐数据加载失败:", error);
-      showToast("音乐数据加载失败", "error");
+      showToast(translate("battle-group1-2.toastMusicLoadError", "音乐数据加载失败"), "error");
       return [];
     });
 }
@@ -411,7 +414,7 @@ async function initializeGameState() {
   console.log("初始化游戏状态...");
 
   // 先显示加载提示
-  showToast("正在加载游戏状态...", "info");
+  showToast(translate("battle-group1-2.toastLoadingState", "正在加载游戏状态..."), "info");
 
   // 恢复链（P11-B3：createPersistence，等价于迁移前的
   // `fetch(GET /api/battle-group1-2-process)` → `.catch` 回退 localStorage 链）：
@@ -427,7 +430,7 @@ async function initializeGameState() {
     initializeNewGame();
     updateBracketDisplay();
     updateRoundDisplay();
-    showToast("游戏状态加载完成", "success");
+    showToast(translate("battle-group1-2.toastStateLoaded", "游戏状态加载完成"), "success");
     return;
   }
 
@@ -483,7 +486,7 @@ async function initializeGameState() {
   }, 500);
 
   // 显示加载完成提示
-  showToast("游戏状态加载完成", "success");
+  showToast(translate("battle-group1-2.toastStateLoaded", "游戏状态加载完成"), "success");
 }
 
 /**
@@ -543,7 +546,7 @@ function initializeNewGame() {
   // 确保至少有4名选手
   if (!BattleState.playersLoaded || BattleState.players.length < 4) {
     console.error("选手数据不足，无法初始化比赛");
-    showToast("选手数据不足，请检查上一章节获胜者数据", "error");
+    showToast(translate("battle-group1-2.toastNotEnoughPlayersInit", "选手数据不足，请检查上一章节获胜者数据"), "error");
     return;
   }
 
@@ -582,7 +585,7 @@ function initializeTournamentBracket() {
   // 确保有4名选手
   if (players.length !== 4) {
     console.error(`选手数量不正确: ${players.length}，需要4名选手`);
-    showToast("选手数量不正确，无法创建赛程", "error");
+    showToast(translate("battle-group1-2.toastInvalidPlayerCount", "选手数量不正确，无法创建赛程"), "error");
     return;
   }
 
@@ -669,7 +672,7 @@ function saveGameState() {
 function handlePersistError(error, phase) {
   if (phase === "save:local") {
     console.error("保存游戏状态失败:", error);
-    showToast("自动保存失败", "error");
+    showToast(translate("battle-group1-2.toastAutoSaveLocalError", "自动保存失败"), "error");
   } else if (phase === "save:remote") {
     console.error("服务器保存失败:", error);
   } else {
@@ -711,7 +714,7 @@ function saveChapter2Winner(winnerName) {
     })
     .catch((error) => {
       console.error("保存获胜者数据失败:", error);
-      showToast("保存获胜者数据失败，但已保存到本地", "warning");
+      showToast(translate("battle-group1-2.toastSaveWinnerLocalOnly", "保存获胜者数据失败，但已保存到本地"), "warning");
     });
 }
 
@@ -754,15 +757,18 @@ function updateRoundDisplay() {
 
   switch (BattleState.currentBracket) {
     case "winner":
-      statusText = "胜者组";
+      statusText = translate("battle-group1-2.winnerBracket", "胜者组");
       statusClass = "winner-bracket";
       break;
     case "loser":
-      statusText = "败者组";
+      statusText = translate("battle-group1-2.loserBracket", "败者组");
       statusClass = "loser-bracket";
       break;
     case "final":
-      statusText = BattleState.currentRound === 2 ? "冠军决定战" : "决赛";
+      statusText =
+        BattleState.currentRound === 2
+          ? translate("battle-group1-2.grandFinalReset", "冠军决定战")
+          : translate("battle-group1-2.finalBracket", "决赛");
       statusClass = "final";
       break;
   }
@@ -777,13 +783,13 @@ function updateBracketDisplay() {
   DOM.bracketDisplay.innerHTML = "";
 
   // 创建胜者组赛程
-  createBracketSection("winner", "胜者组");
+  createBracketSection("winner", translate("battle-group1-2.winnerBracket", "胜者组"));
 
   // 创建败者组赛程
-  createBracketSection("loser", "败者组");
+  createBracketSection("loser", translate("battle-group1-2.loserBracket", "败者组"));
 
   // 创建决赛赛程
-  createBracketSection("final", "决赛");
+  createBracketSection("final", translate("battle-group1-2.finalBracket", "决赛"));
 }
 
 // 创建赛程图的一个部分 (胜者组/败者组/决赛)
@@ -809,7 +815,7 @@ function createBracketSection(bracketType, title) {
     // 创建轮次标题
     const roundTitle = document.createElement("div");
     roundTitle.className = "bracket-round-title";
-    roundTitle.innerText = `第${roundData.round}轮`;
+    roundTitle.innerText = translate("battle-group1-2.roundTitle", `第${roundData.round}轮`, { n: roundData.round });
     roundDiv.appendChild(roundTitle);
 
     // 创建比赛卡片
@@ -855,7 +861,22 @@ function createMatchCard(match, bracketType, round, matchIndex) {
   card.className = "bracket-match";
 
   // 添加特定的比赛顺序标识类
-  card.classList.add(`${bracketType}-r${round}-m${matchIndex}`);
+  const matchSlotKey = `${bracketType}-r${round}-m${matchIndex}`;
+  card.classList.add(matchSlotKey);
+  card.setAttribute("data-current-label", translate("battle-group1-2.currentBadge", "当前"));
+
+  const slotLabelMap = {
+    "winner-r1-m0": translate("battle-group1-2.match1", "比赛一"),
+    "winner-r1-m1": translate("battle-group1-2.match2", "比赛二"),
+    "loser-r1-m0": translate("battle-group1-2.match3", "比赛三"),
+    "winner-r2-m0": translate("battle-group1-2.match4", "比赛四"),
+    "loser-r2-m0": translate("battle-group1-2.match5", "比赛五"),
+    "final-r1-m0": translate("battle-group1-2.match6", "决赛"),
+    "final-r2-m0": translate("battle-group1-2.grandFinalReset", "冠军决定战"),
+  };
+  if (slotLabelMap[matchSlotKey]) {
+    card.setAttribute("data-match-label", slotLabelMap[matchSlotKey]);
+  }
 
   // 如果是当前比赛，添加样式（round 即 roundData.round，1-based；
   // currentRound 同为 1-based——getCurrentMatch 以 currentRound-1 作轮次下标）
@@ -882,7 +903,7 @@ function createMatchCard(match, bracketType, round, matchIndex) {
   } else if (match.winner && match.player1 !== match.winner) {
     player1.classList.add("loser");
   }
-  player1.innerText = match.player1 === "TBD" ? "待定" : match.player1;
+  player1.innerText = match.player1 === "TBD" ? translate("battle-group1-2.tbd", "待定") : match.player1;
   appendBracketMarks(player1);
   card.appendChild(player1);
 
@@ -894,7 +915,7 @@ function createMatchCard(match, bracketType, round, matchIndex) {
   } else if (match.winner && match.player2 !== match.winner) {
     player2.classList.add("loser");
   }
-  player2.innerText = match.player2 === "TBD" ? "待定" : match.player2;
+  player2.innerText = match.player2 === "TBD" ? translate("battle-group1-2.tbd", "待定") : match.player2;
   appendBracketMarks(player2);
   card.appendChild(player2);
 
@@ -902,7 +923,7 @@ function createMatchCard(match, bracketType, round, matchIndex) {
   if (match.isFinal) {
     const badge = document.createElement("div");
     badge.className = "final-badge";
-    badge.innerText = "冠军赛";
+    badge.innerText = translate("battle-group1-2.championshipMatch", "冠军赛");
     card.appendChild(badge);
   }
 
@@ -913,7 +934,7 @@ function createMatchCard(match, bracketType, round, matchIndex) {
 function showWinnerAnnouncement(winnerName) {
   const announcement = document.createElement("div");
   announcement.classList.add("winner-announcement");
-  announcement.innerText = `${winnerName} 获胜!`;
+  announcement.innerText = translate("battle-group1-2.winnerAnnouncement", `${winnerName} 获胜!`, { name: winnerName });
   document.body.appendChild(announcement);
 
   // 自动移除
@@ -946,7 +967,13 @@ function showFinalWinnerAnnouncement(winnerName) {
   announcement.style.border = "4px solid #ffd700";
   announcement.style.padding = "30px 50px";
   announcement.style.fontSize = "36px";
-  announcement.innerHTML = `${icon("trophy", { size: 36 })} 恭喜 <strong>${escapeHtml(winnerName)}</strong> 成为第二章节冠军! ${icon("trophy", { size: 36 })}<br><small>5秒后自动跳转到排名页面</small>`;
+  const congratsHtml = translate(
+    "battle-group1-2.finalWinnerBanner",
+    `恭喜 <strong>${escapeHtml(winnerName)}</strong> 成为第二章节冠军!`,
+    { name: `<strong>${escapeHtml(winnerName)}</strong>` }
+  );
+  const redirectText = translate("battle-group1-2.redirectingToRank", "5秒后自动跳转到排名页面");
+  announcement.innerHTML = `${icon("trophy", { size: 36 })} ${congratsHtml} ${icon("trophy", { size: 36 })}<br><small>${redirectText}</small>`;
   document.body.appendChild(announcement);
 
   // 5秒后跳转到排名页面
@@ -1158,18 +1185,21 @@ function updateMatchDescription() {
   if (!currentMatch) return;
 
   const bracketNames = {
-    winner: "胜者组",
-    loser: "败者组",
-    final: "决赛",
+    winner: translate("battle-group1-2.winnerBracket", "胜者组"),
+    loser: translate("battle-group1-2.loserBracket", "败者组"),
+    final: translate("battle-group1-2.finalBracket", "决赛"),
   };
 
   const matchNames = {
-    1: "比赛一",
-    2: "比赛二",
-    3: "比赛三",
-    4: "比赛四",
-    5: "比赛五",
-    6: "决赛",
+    1: translate("battle-group1-2.match1", "比赛一"),
+    2: translate("battle-group1-2.match2", "比赛二"),
+    3: translate("battle-group1-2.match3", "比赛三"),
+    4: translate("battle-group1-2.match4", "比赛四"),
+    5: translate("battle-group1-2.match5", "比赛五"),
+    6:
+      BattleState.currentBracket === "final" && BattleState.currentRound === 2
+        ? translate("battle-group1-2.grandFinalReset", "冠军决定战")
+        : translate("battle-group1-2.match6", "决赛"),
   };
 
   let description = "";
@@ -1178,9 +1208,7 @@ function updateMatchDescription() {
   if (matchNumber) {
     description = matchNames[matchNumber] || "";
   } else {
-    description = `${bracketNames[BattleState.currentBracket] || ""} 第${
-      BattleState.currentRound
-    }轮`;
+    description = `${bracketNames[BattleState.currentBracket] || ""} ${translate("battle-group1-2.roundTitle", `第${BattleState.currentRound}轮`, { n: BattleState.currentRound })}`;
   }
 
   if (DOM.tournamentStatus) {
@@ -1202,22 +1230,22 @@ function updateMatchDescription() {
     if (matchNumber === 3) {
       const hint = document.createElement("div");
       hint.className = "match-hint";
-      hint.textContent = "两场比赛的败者对决";
+      hint.textContent = translate("battle-group1-2.match3Hint", "两场比赛的败者对决");
       DOM.tournamentStatus.appendChild(hint);
     } else if (matchNumber === 4) {
       const hint = document.createElement("div");
       hint.className = "match-hint";
-      hint.textContent = "两场比赛的胜者对决";
+      hint.textContent = translate("battle-group1-2.match4Hint", "两场比赛的胜者对决");
       DOM.tournamentStatus.appendChild(hint);
     } else if (matchNumber === 5) {
       const hint = document.createElement("div");
       hint.className = "match-hint";
-      hint.textContent = "比赛四的败者与比赛三的胜者对决";
+      hint.textContent = translate("battle-group1-2.match5Hint", "比赛四的败者与比赛三的胜者对决");
       DOM.tournamentStatus.appendChild(hint);
     } else if (matchNumber === 6) {
       const hint = document.createElement("div");
       hint.className = "match-hint";
-      hint.textContent = "比赛四的胜者与比赛五的胜者对决";
+      hint.textContent = translate("battle-group1-2.match6Hint", "比赛四的胜者与比赛五的胜者对决");
       DOM.tournamentStatus.appendChild(hint);
     }
   }
@@ -1264,9 +1292,9 @@ function displayCurrentMatch() {
   // 更新选手名称显示
   if (DOM.player1Name && DOM.player2Name) {
     DOM.player1Name.innerText =
-      currentMatch.player1 === "TBD" ? "待定" : currentMatch.player1;
+      currentMatch.player1 === "TBD" ? translate("battle-group1-2.tbd", "待定") : currentMatch.player1;
     DOM.player2Name.innerText =
-      currentMatch.player2 === "TBD" ? "待定" : currentMatch.player2;
+      currentMatch.player2 === "TBD" ? translate("battle-group1-2.tbd", "待定") : currentMatch.player2;
   }
 
   // 如果已有结果，显示胜负
@@ -1339,7 +1367,7 @@ function randomizeMatches() {
   console.log("执行随机匹配");
 
   if (!BattleState.playersLoaded || BattleState.players.length < 4) {
-    showToast("选手数据不足，无法随机匹配", "warning");
+    showToast(translate("battle-group1-2.toastNotEnoughPlayersRandom", "选手数据不足，无法随机匹配"), "warning");
     return;
   }
 
@@ -1357,8 +1385,8 @@ function randomizeMatches() {
   ) {
     showToast(
       currentMatch?.winner
-        ? "当前场次已定胜负，无法重新随机匹配"
-        : "只能在比赛开始前随机匹配选手",
+        ? translate("battle-group1-2.toastMatchAlreadyDecided", "当前场次已定胜负，无法重新随机匹配")
+        : translate("battle-group1-2.toastRandomBeforeStartOnly", "只能在比赛开始前随机匹配选手"),
       "warning"
     );
     return;
@@ -1383,7 +1411,7 @@ function randomizeMatches() {
   displayCurrentMatch();
   updateBracketDisplay();
 
-  showToast("选手已随机匹配", "success");
+  showToast(translate("battle-group1-2.toastRandomMatched", "选手已随机匹配"), "success");
 }
 
 // 处理下一场比赛
@@ -1393,7 +1421,7 @@ function handleNextMatch() {
   // 检查当前比赛是否已完成
   const currentMatch = getCurrentMatch();
   if (!currentMatch || !currentMatch.winner) {
-    showToast("请先通过点击选手确定本场比赛的获胜者", "warning");
+    showToast(translate("battle-group1-2.toastSelectWinnerFirst", "请先通过点击选手确定本场比赛的获胜者"), "warning");
     return;
   }
 
@@ -1405,7 +1433,10 @@ function handleNextMatch() {
     // 比赛已全部完成
     const winner = determineTournamentWinner();
     if (winner) {
-      showToast(`双败赛制比赛已全部完成，最终获胜者是 ${winner}！`, "success");
+      showToast(
+        translate("battle-group1-2.toastTournamentCompleted", `双败赛制比赛已全部完成，最终获胜者是 ${winner}！`, { winner }),
+        "success"
+      );
 
       // 保存最终获胜者
       saveChapter2Winner(winner);
@@ -1413,7 +1444,7 @@ function handleNextMatch() {
       // 显示最终获胜提示
       showFinalWinnerAnnouncement(winner);
     } else {
-      showToast("比赛已完成，但无法确定获胜者", "error");
+      showToast(translate("battle-group1-2.toastWinnerDetermineError", "比赛已完成，但无法确定获胜者"), "error");
     }
     return;
   }
@@ -1423,13 +1454,13 @@ function handleNextMatch() {
     BattleState.currentBracket === "final" &&
     BattleState.currentRound === 2
   ) {
-    showToast("进入冠军决定战！胜者组选手需再输一场才会被淘汰", "info");
+    showToast(translate("battle-group1-2.toastGrandFinalReset", "进入冠军决定战！胜者组选手需再输一场才会被淘汰"), "info");
   }
 
   // 获取新的当前比赛
   const nextMatch = getCurrentMatch();
   if (!nextMatch) {
-    showToast("没有下一场比赛了", "warning");
+    showToast(translate("battle-group1-2.toastNoNextMatch", "没有下一场比赛了"), "warning");
     return;
   }
 
@@ -1480,9 +1511,9 @@ function resetGame() {
 
   // 重置音乐（音乐展示/播放状态归 music-player 组件）
   if (apis.music) apis.music.clearItem();
-  if (DOM.musicName) DOM.musicName.innerText = "音乐名称";
+  if (DOM.musicName) DOM.musicName.innerText = translate("tournament.musicName", "音乐名称");
 
-  showToast("游戏已重置", "success");
+  showToast(translate("battle-group1-2.toastGameReset", "游戏已重置"), "success");
 }
 
 // 新增合并功能：清除缓存并重置游戏
@@ -1493,13 +1524,13 @@ function clearCacheAndResetGame() {
     localStorage.removeItem("chapter2Winner");
 
     // 显示处理中提示
-    showToast("正在重置比赛并清除缓存...", "info");
+    showToast(translate("battle-group1-2.toastClearingCache", "正在重置比赛并清除缓存..."), "info");
 
     // persist.reset：清 localStorage + POST /api/clear-battle-group1-2-process（端点逐字保留）
     persist.reset().then(({ remote }) => {
       if (!remote) {
         console.error("清除服务器缓存失败");
-        showToast("清除服务器缓存失败", "error");
+        showToast(translate("battle-group1-2.toastClearServerCacheError", "清除服务器缓存失败"), "error");
         return;
       }
 
@@ -1521,9 +1552,9 @@ function clearCacheAndResetGame() {
 
         // 重置音乐（音乐展示/播放状态归 music-player 组件）
         if (apis.music) apis.music.clearItem();
-        if (DOM.musicName) DOM.musicName.innerText = "音乐名称";
+        if (DOM.musicName) DOM.musicName.innerText = translate("tournament.musicName", "音乐名称");
 
-        showToast("比赛已完全重置，使用最新数据", "success");
+        showToast(translate("battle-group1-2.toastFullResetSuccess", "比赛已完全重置，使用最新数据"), "success");
 
         // 刷新页面以确保所有状态都是最新的
         later(() => location.reload(), 1500);
@@ -1531,7 +1562,7 @@ function clearCacheAndResetGame() {
     });
   } catch (error) {
     console.error("重置失败:", error);
-    showToast("重置失败: " + error.message, "error");
+    showToast(translate("battle-group1-2.toastResetError", "重置失败: " + error.message, { message: error.message }), "error");
   }
 }
 
@@ -1540,13 +1571,13 @@ function setWinner(playerId) {
   // 检查当前比赛是否存在
   const currentMatch = getCurrentMatch();
   if (!currentMatch) {
-    showToast("没有正在进行的比赛", "error");
+    showToast(translate("battle-group1-2.toastNoActiveMatch", "没有正在进行的比赛"), "error");
     return;
   }
 
   // 如果比赛已有获胜者，提示已完成
   if (currentMatch.winner) {
-    showToast("当前比赛已经有获胜者，请进入下一场比赛", "warning");
+    showToast(translate("battle-group1-2.toastMatchHasWinner", "当前比赛已经有获胜者，请进入下一场比赛"), "warning");
     return;
   }
 
@@ -1571,7 +1602,7 @@ function setWinner(playerId) {
   // 空名守卫：选手卡尚未显示有效名字（空串/纯空白）时不得记录——
   // 否则空名会写进 currentMatch.winner 与 playerStats
   if (!winnerName || !winnerName.trim() || !loserName || !loserName.trim()) {
-    showToast("选手名称无效，无法记录比赛结果", "error");
+    showToast(translate("battle-group1-2.toastInvalidPlayerName", "选手名称无效，无法记录比赛结果"), "error");
     return;
   }
 
@@ -1630,14 +1661,14 @@ export function componentProps(bridge) {
         bridge.music = api;
       },
       // 未抽到音乐即点播放（迁移前提示文案逐字保留）
-      onEmpty: () => showToast("请先抽取音乐", "warning"),
+      onEmpty: () => showToast(translate("battle-group1-2.toastDrawMusicFirst", "请先抽取音乐"), "warning"),
       // 比赛模式抖动：组件在"进入模式、遮罩显示、逐字动画开始前"回调 ——
       // 迁移前抖动发生在进入模式瞬间（body）与逐字动画走完时（文字），而非真正开播的 4500ms
       onOverlayShown: shakeBattleOverlay,
       onExited: () => {
         document.body.classList.remove("shake");
       },
-      onError: () => showToast("音乐播放失败，请重试", "error"),
+      onError: () => showToast(translate("battle-group1-2.toastMusicPlayError", "音乐播放失败，请重试"), "error"),
     },
     "draw-machine": {
       items: () => BattleState.musicList,
@@ -1649,12 +1680,14 @@ export function componentProps(bridge) {
       // 迁移前 handleDrawMusic 的两条前置校验（文案逐字保留）
       onEmpty: () =>
         showToast(
-          BattleState.musicLoaded ? "音乐列表为空" : "音乐数据正在加载，请稍候",
+          BattleState.musicLoaded
+            ? translate("battle-group1-2.toastMusicListEmpty", "音乐列表为空")
+            : translate("battle-group1-2.toastMusicLoading", "音乐数据正在加载，请稍候"),
           BattleState.musicLoaded ? "error" : "info"
         ),
       onResult: (item) => {
         if (bridge.music) bridge.music.setItem(item);
-        showToast(`已抽取音乐: ${item}`, "success");
+        showToast(translate("battle-group1-2.toastMusicDrawn", `已抽取音乐: ${item}`, { item }), "success");
       },
     },
   };
@@ -1664,6 +1697,9 @@ export function componentProps(bridge) {
  *  组件入口（原 b-g1-2-core.js DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
 export function battleGroup12Component(el, meta, ctx, bridge) {
+  const t = (key, fb, params) => ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb;
+  translate = t;
+
   // cleanup 契约：静态骨架节点的全部监听经 signal 登记，重渲染时 abort 统一解绑，
   // 防止不刷新页面的重复 render 造成双绑双触发
   const bindAbort = new AbortController();

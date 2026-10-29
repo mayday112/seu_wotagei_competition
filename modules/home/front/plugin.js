@@ -33,8 +33,9 @@ export default {
               .sort((a, b) => (a.order || 0) - (b.order || 0));
 
             if (list.length === 0) {
+              const emptyText = ctx2 && ctx2.i18n ? ctx2.i18n.t("home.noFeatures", "暂无可用功能，请先在 modules/modules.json 中注册模块") : "暂无可用功能，请先在 modules/modules.json 中注册模块";
               container.innerHTML =
-                "<p>暂无可用功能，请先在 modules/modules.json 中注册模块</p>";
+                `<p>${emptyText}</p>`;
               return;
             }
 
@@ -69,8 +70,9 @@ export default {
           })
           .catch(() => {
             if (!container) return;
+            const errText = ctx2 && ctx2.i18n ? ctx2.i18n.t("home.serverDisconnected", "无法连接服务器，请先启动 node server.js") : "无法连接服务器，请先启动 node server.js";
             container.innerHTML =
-              "<p>无法连接服务器，请先启动 node server.js</p>";
+              `<p>${errText}</p>`;
           });
 
         // 重渲染/卸载时清空动态内容（按钮节点及其监听器一并释放）

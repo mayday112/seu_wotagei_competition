@@ -29,6 +29,7 @@
 
 import { icon, iconEl, ICON_NAMES } from "/web/icons.mjs";
 import { createReactiveScope, mountReactiveSafe } from "/web/lib/reactive.mjs";
+import { t } from "/web/lib/i18n.mjs";
 
 // 静态头部图标水合：index.html 曾自内联 Heroicons/Tabler path（AGENTS §4.1 禁——
 // 多份事实来源必然漂移），挂载时统一替换为 /web/icons.mjs 基座图标。
@@ -61,7 +62,7 @@ const FILTERS = [
 // style.css 零改动。加载/错误占位复用旧 .plugin-placeholder 类。
 const TEMPLATE = `
 <div class="plugin-placeholder" v-if="loadError">{{ loadError }}</div>
-<div class="plugin-placeholder" v-if="!ready && !loadError">正在加载装配快照…</div>
+<div class="plugin-placeholder" v-if="!ready && !loadError">{{ t("plugin-manager.loadingSnapshot") }}</div>
 <div class="pm-view" v-if="ready">
   <div class="pm-tabs" role="tablist" aria-label="插件类型" @keydown="onTablistKeydown($event)">
     <button class="pm-tab" type="button" role="tab" aria-controls="pm-tabpanel" data-tab="front"
@@ -86,15 +87,15 @@ const TEMPLATE = `
 
   <div class="pm-toolbar">
     <div class="pm-search" role="search">
-      <label class="sr-only" for="pm-search-input">搜索插件名称或标识</label>
+      <label class="sr-only" for="pm-search-input">{{ t("plugin-manager.search.aria") }}</label>
       <span class="pm-search-icon" aria-hidden="true" v-html="iconSvg('search')"></span>
-      <input type="search" id="pm-search-input" class="pm-search-input" placeholder="搜索插件名称或标识..."
+      <input type="search" id="pm-search-input" class="pm-search-input" :placeholder="t('plugin-manager.search.placeholder')"
         autocomplete="off" v-model="query" @keydown.escape="clearQuery($event)">
     </div>
     <div class="pm-chips" role="group" aria-label="状态筛选">
       <button class="pm-chip" type="button" v-for="f in filters" :key="f.key"
         :data-filter="f.key" :aria-pressed="filter === f.key ? 'true' : 'false'"
-        @click="setFilter(f.key)">{{ f.label }}</button>
+        @click="setFilter(f.key)">{{ t(f.i18nKey, f.label) }}</button>
     </div>
     <div class="pm-stats">
       <span class="pm-stat pm-stat--on" :aria-label="'挂载 ' + stats().mounted + ' 个'"><span class="pm-stat-dot"></span><span>挂载</span><span class="pm-stat-num">{{ stats().mounted }}</span></span>
@@ -117,16 +118,16 @@ const TEMPLATE = `
             <code class="pm-id">{{ b.id }}</code>
           </div>
           <div class="pm-side">
-            <span class="pm-badge" :class="b.kind === 'legacy' ? 'pm-badge--legacy' : 'pm-badge--plugin'">{{ b.kind === 'legacy' ? '后端·legacy' : '后端·插件' }}</span>
+            <span class="pm-badge" :class="b.kind === 'legacy' ? 'pm-badge--legacy' : 'pm-badge--plugin'">{{ b.kind === 'legacy' ? t("plugin-manager.badges.backendLegacy") : t("plugin-manager.badges.backendPlugin") }}</span>
             <span class="pm-dot" :class="stateOf(b).cls">{{ stateOf(b).label }}</span>
             <div class="pm-ops">
-              <button class="pm-btn pm-btn--sm" type="button" @click="toggleBackend(b)">{{ b.enabled ? '禁用' : '启用' }}</button>
+              <button class="pm-btn pm-btn--sm" type="button" @click="toggleBackend(b)">{{ b.enabled ? t("plugin-manager.actions.disable") : t("plugin-manager.actions.enable") }}</button>
               <button class="pm-btn pm-btn--sm" type="button" v-if="b.kind !== 'legacy'" @click="reloadPlugin(b)">
-                <span class="pm-ic" aria-hidden="true" v-html="iconSvg('refresh')"></span><span>重载</span>
+                <span class="pm-ic" aria-hidden="true" v-html="iconSvg('refresh')"></span><span>{{ t("plugin-manager.actions.reload") }}</span>
               </button>
               <button class="pm-btn pm-btn--sm" type="button" v-if="b.kind !== 'legacy'"
                 :data-cfg="b.id" :aria-expanded="openEditors[b.id] ? 'true' : 'false'"
-                @click="toggleEditor(b)">{{ openEditors[b.id] ? '收起配置' : '配置' }}</button>
+                @click="toggleEditor(b)">{{ openEditors[b.id] ? t("plugin-manager.actions.collapseConfig") : t("plugin-manager.actions.config") }}</button>
             </div>
           </div>
         </div>
@@ -134,7 +135,7 @@ const TEMPLATE = `
         <div class="pm-config" v-if="openEditors[b.id]">
           <textarea class="pm-config-text" rows="6" :aria-label="'插件 ' + b.id + ' 的 config JSON'"
             :value="draftText(b)" @input="setDraft(b.id, $event.target.value)"></textarea>
-          <button class="pm-btn pm-btn--sm pm-btn--primary" type="button" @click="saveConfig(b)">保存配置</button>
+          <button class="pm-btn pm-btn--sm pm-btn--primary" type="button" @click="saveConfig(b)">{{ t("plugin-manager.actions.saveConfig") }}</button>
         </div>
       </div>
       <div class="pm-empty" v-if="activeTab === 'backend' && !filtered().length">
@@ -149,7 +150,7 @@ const TEMPLATE = `
           <span class="pm-tag">页面插件</span>
           <span style="font-size:12px;color:var(--text-muted);">{{ pageRows().length }} 个 · key = 模块 id，内核按 URL 自动渲染</span>
         </div>
-        <p class="pm-empty-hint" style="margin:6px 4px 10px;" v-if="!pageRows().length">没有匹配的页面插件</p>
+        <p class="pm-empty-hint" style="margin:6px 4px 10px;" v-if="!pageRows().length">{{ t("plugin-manager.hints.noMatchingPages") }}</p>
         <div class="pm-item" role="listitem" v-for="f in pageRows()" :key="f.id">
           <div class="pm-row">
             <span class="pm-icon" aria-hidden="true" v-html="metaIconSvg(f.icon)"></span>
@@ -158,7 +159,7 @@ const TEMPLATE = `
               <code class="pm-id">{{ f.id }}</code>
             </div>
             <div class="pm-side">
-              <span class="pm-badge pm-badge--front">前端·页面</span>
+              <span class="pm-badge pm-badge--front">{{ t("plugin-manager.badges.frontPage") }}</span>
               <span class="pm-dot" :class="stateOf(f).cls">{{ stateOf(f).label }}</span>
               <div class="pm-ops">
                 <button class="pm-btn pm-btn--sm" type="button" :disabled="groupBusy" @click="toggleFront(f)">{{ f.enabled ? '禁用' : '启用' }}</button>
@@ -175,7 +176,7 @@ const TEMPLATE = `
           <span class="pm-tag">组件插件</span>
           <span style="font-size:12px;color:var(--text-muted);">{{ compRows().length }} 个 · 注册进组件表，由页面按名取用（永不自动渲染）</span>
         </div>
-        <p class="pm-empty-hint" style="margin:6px 4px 10px;" v-if="!compRows().length">没有匹配的组件插件</p>
+        <p class="pm-empty-hint" style="margin:6px 4px 10px;" v-if="!compRows().length">{{ t("plugin-manager.hints.noMatchingComponents") }}</p>
         <div class="pm-item" role="listitem" v-for="f in compRows()" :key="f.id">
           <div class="pm-row">
             <span class="pm-icon" aria-hidden="true" v-html="metaIconSvg(f.icon)"></span>
@@ -184,7 +185,7 @@ const TEMPLATE = `
               <code class="pm-id">{{ f.id }}</code>
             </div>
             <div class="pm-side">
-              <span class="pm-badge pm-badge--front">前端·组件</span>
+              <span class="pm-badge pm-badge--front">{{ t("plugin-manager.badges.frontComponent") }}</span>
               <span class="pm-dot" :class="stateOf(f).cls">{{ stateOf(f).label }}</span>
               <div class="pm-ops">
                 <button class="pm-btn pm-btn--sm" type="button" :disabled="groupBusy" @click="toggleFront(f)">{{ f.enabled ? '禁用' : '启用' }}</button>
@@ -217,10 +218,10 @@ const TEMPLATE = `
               <span class="pm-name">
                 <span class="pm-item-head">
                   <span class="pm-title">{{ g.name }}</span>
-                  <span class="pm-badge pm-badge--legacy" v-if="g.gid === activeTheme">当前主题</span>
+                  <span class="pm-badge pm-badge--legacy" v-if="g.gid === activeTheme">{{ t("plugin-manager.badges.currentTheme") }}</span>
                 </span>
                 <code class="pm-id" v-if="!g.isDefault && g.core">{{ g.core.id }}</code>
-                <span class="pm-tg-count">{{ g.isDefault ? '虚拟组 · 无插件条目' : '已启用 ' + groupEnabledCount(g) + ' / 共 ' + groupTotalCount(g) }}</span>
+                <span class="pm-tg-count">{{ g.isDefault ? t("plugin-manager.hints.defaultThemeVirtual") : t("plugin-manager.hints.themeGroupCount", { enabled: groupEnabledCount(g), total: groupTotalCount(g) }) }}</span>
               </span>
               <span class="pm-tg-chevron" aria-hidden="true" v-html="iconSvg(groupOpen[g.gid] ? 'chevron-down' : 'chevron-right')"></span>
             </button>
@@ -232,7 +233,7 @@ const TEMPLATE = `
           </div>
           <div class="pm-tg-body" v-if="groupOpen[g.gid]" :id="'pm-tg-body-' + g.gid">
             <div v-if="g.isDefault" style="padding:4px 8px;">
-              <p class="pm-empty-hint">本组无插件：默认皮肤由各页面自带，停用全部主题插件即回到默认外观。</p>
+              <p class="pm-empty-hint">{{ t("plugin-manager.hints.defaultThemeDesc") }}</p>
             </div>
             <div v-if="!g.isDefault">
               <div class="pm-item" role="listitem" v-for="m in groupRows(g)" :key="m.id">
@@ -240,7 +241,7 @@ const TEMPLATE = `
                   <span class="pm-icon" aria-hidden="true" v-html="metaIconSvg(m.icon)"></span>
                   <div class="pm-name">
                     <div class="pm-item-head">
-                      <span class="pm-tag">{{ g.core && m.id === g.core.id ? '主题核心' : '组件成员' }}</span>
+                      <span class="pm-tag">{{ g.core && m.id === g.core.id ? t("plugin-manager.badges.themeCore") : t("plugin-manager.badges.componentMember") }}</span>
                       <span class="pm-title">{{ displayName(m) }}</span>
                     </div>
                     <code class="pm-id">{{ m.id }}</code>
@@ -254,31 +255,31 @@ const TEMPLATE = `
                   </div>
                 </div>
               </div>
-              <p class="pm-empty-hint" style="padding:4px 8px;" v-if="!groupRows(g).length">当前搜索词或状态筛选下没有可见的组成员行。</p>
+              <p class="pm-empty-hint" style="padding:4px 8px;" v-if="!groupRows(g).length">{{ t("plugin-manager.hints.noVisibleMembers") }}</p>
             </div>
           </div>
         </section>
         <p class="pm-empty-hint" style="margin:10px 4px;" v-if="!snapshot.front.some(isThemeEntry)">
-          自建主题：新建 modules/component-theme-&lt;id&gt;/ 组件插件并登记 web/front.json，本页与主题管理页都会自动出现（见主题管理页内指南）。
+          {{ t("plugin-manager.hints.createThemeHint") }}
         </p>
       </section>
 
       <div class="pm-empty" v-if="activeTab === 'theme' && !visibleThemeGroups().length">
         <span class="pm-empty-icon" aria-hidden="true" v-html="iconSvg('search')"></span>
-        <p class="pm-empty-title">没有匹配的主题插件</p>
+        <p class="pm-empty-title">{{ t("plugin-manager.hints.noMatchingThemes") }}</p>
         <p class="pm-empty-hint">试试清空搜索词，或切换「全部」筛选。</p>
       </div>
     </div>
   </div>
 
   <div class="pm-bar">
-    <span class="pm-bar-left">共 {{ snapshot.backend.length }} 个模块 · 前端 {{ snapshot.front.length }} 个条目（页面 {{ snapshot.front.length - componentCount() }} · 组件 {{ componentCount() }} · 主题 {{ themeGroups().length }} 组）· 后端 {{ snapshot.backend.length }} 个插件 · 热替换无需重启进程</span>
-    <span class="pm-bar-right"><kbd class="pm-kbd">Ctrl</kbd> + <kbd class="pm-kbd">K</kbd> 聚焦搜索 · 修改即时生效</span>
+    <span class="pm-bar-left">{{ t("plugin-manager.hints.footerBar", { modules: snapshot.backend.length, front: snapshot.front.length, pages: snapshot.front.length - componentCount(), components: componentCount(), themes: themeGroups().length, backend: snapshot.backend.length }) }}</span>
+    <span class="pm-bar-right"><kbd class="pm-kbd">Ctrl</kbd> + <kbd class="pm-kbd">K</kbd> {{ t("plugin-manager.hints.ctrlK") }}</span>
   </div>
 </div>
 `;
 
-export function createManagerView({ root, api, signal }) {
+export function createManagerView({ root, api, ctx, signal }) {
   let state = null; // reactive scope（异步就绪；全部 helper 经闭包读写，不依赖 this）
   let disposeView = null;
   let disposed = false;
@@ -378,7 +379,7 @@ export function createManagerView({ root, api, signal }) {
     for (const entry of front) byId[String(entry.id || "")] = entry;
     const claimed = new Set();
     const groups = [
-      { gid: "default", name: "默认主题", icon: "box", isDefault: true, core: null, members: [] },
+      { gid: "default", name: t("plugin-manager.badges.currentTheme", "默认主题"), icon: "box", isDefault: true, core: null, members: [] },
     ];
     for (const entry of front) {
       const m = THEME_CORE_RE.exec(String(entry.id || ""));
@@ -525,7 +526,7 @@ export function createManagerView({ root, api, signal }) {
       state.ready = true;
       state.loadError = "";
     } catch (e) {
-      const msg = `装配快照读取失败：${e.message}（插件装配服务未就绪，请重启服务）`;
+      const msg = t("plugin-manager.snapshotLoadFailed", { error: e.message });
       if (state.ready) {
         // 已就绪后失败：错误走状态行，避免与完整视图同屏叠显
         setStatus(msg, true);
@@ -597,7 +598,7 @@ export function createManagerView({ root, api, signal }) {
   }
 
   function reloadPlugin(b) {
-    act(api.post(`/api/plugins/${encodeURIComponent(b.id)}/reload`), "已热重载");
+    act(api.post(`/api/plugins/${encodeURIComponent(b.id)}/reload`), t("plugin-manager.status.reloadedSuccess"));
   }
 
   function toggleFront(f) {
@@ -626,7 +627,7 @@ export function createManagerView({ root, api, signal }) {
         if (!res.ok) return { error: (data && data.error) || `HTTP ${res.status}` };
         return { ok: true };
       }),
-      `已设为系统主题「${gid === "default" ? "默认主题" : gid}」，各页面刷新后生效`
+      t("plugin-manager.status.setThemeSuccess", { name: gid === "default" ? t("plugin-manager.badges.currentTheme", "默认主题") : gid })
     );
   }
 
@@ -689,13 +690,13 @@ export function createManagerView({ root, api, signal }) {
     try {
       parsed = JSON.parse(draftText(b));
     } catch (err) {
-      setStatus(`配置 JSON 解析失败：${err.message}`, true);
+      setStatus(t("plugin-manager.status.jsonParseError", { error: err.message }), true);
       return;
     }
     delete state.drafts[b.id];
     act(
       api.post(`/api/plugins/${encodeURIComponent(b.id)}/config`, { config: parsed }),
-      "配置已保存并热重装"
+      t("plugin-manager.status.configSaved")
     );
   }
 

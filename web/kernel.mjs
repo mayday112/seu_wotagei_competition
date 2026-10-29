@@ -74,7 +74,7 @@ export async function assemblePage({
       const bad = unknownInjects(exported);
       if (bad.length > 0) {
         throw new Error(
-          `插件 ${id} inject 引用未知服务: ${bad.join(", ")}（已知: ui/api/state），已跳过挂载`
+          `插件 ${id} inject 引用未知服务: ${bad.join(", ")}（已知: ui/api/state/i18n），已跳过挂载`
         );
       }
       await ctx.plugin(exported, entry.config);
@@ -94,7 +94,7 @@ export async function assemblePage({
       ctx.ui.render(moduleId, meta, container);
     } catch (e) {
       log(`[web/kernel] 组件 ${moduleId} 渲染失败: ${e && e.message}`);
-      container.innerHTML = '<div class="plugin-placeholder">插件界面渲染失败，请刷新页面重试</div>';
+      container.innerHTML = '<div class="plugin-placeholder" data-i18n="common.pluginRenderError">插件界面渲染失败，请刷新页面重试</div>';
     }
   }
   return { ctx, errors };
@@ -120,7 +120,12 @@ export async function start() {
   // 浏览器环境：翻译静态 DOM 节点并挂载右上角语言切换器
   if (typeof document !== "undefined" && ctx && ctx.i18n) {
     try {
-      ctx.i18n.translateTree(document.body);
+      if (document.documentElement) {
+        document.documentElement.lang = ctx.i18n.getLocale();
+        ctx.i18n.translateTree(document.documentElement);
+      } else if (document.body) {
+        ctx.i18n.translateTree(document.body);
+      }
       mountLanguageSwitcher(ctx);
     } catch (e) {
       console.error("[web/kernel] i18n 初始化或语言切换器挂载失败:", e);

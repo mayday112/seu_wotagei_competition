@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>团体赛 - 第一大轮</title>
+    <title data-i18n="group-battle.pageTitle1">团体赛 - 第一大轮</title>
     <link rel="preload" as="image" href="/resource/images/bg.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于 style.css，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -12,16 +12,16 @@
   </head>
   <body>
     <div class="container" id="main-container">
-      <header><h1 data-i18n="groupBattle.title">团体赛 - 初赛</h1></header>
+      <header><h1 data-i18n="group-battle.title">团体赛 - 初赛</h1></header>
 
       <section id="status-section">
-        <div id="bracket-status" data-i18n="groupBattle.bracketStatus">第一大轮</div>
-        <div id="system-hint" data-i18n="groupBattle.systemHint">请将12名成员分配到4个组中</div>
+        <div id="bracket-status" data-i18n="group-battle.bracketStatus">第一大轮</div>
+        <div id="system-hint" data-i18n="group-battle.systemHint">请将12名成员分配到4个组中</div>
       </section>
 
       <!-- 未分配成员席 -->
       <section id="unassigned-section">
-        <h3 class="section-title" data-i18n="groupBattle.unassigned">未分配成员</h3>
+        <h3 class="section-title" data-i18n="group-battle.unassigned">未分配成员</h3>
         <div class="unassigned-pool" id="unassigned-pool"></div>
       </section>
 
@@ -33,14 +33,14 @@
 
       <!-- 技池区域（第一轮专用） -->
       <section id="trick-pool-section" class="hidden">
-        <h3 class="section-title" data-i18n="groupBattle.trickPool">技池（首个技必须从此选择）</h3>
+        <h3 class="section-title" data-i18n="group-battle.trickPool">技池（首个技必须从此选择）</h3>
         <div class="trick-pool" id="trick-pool"></div>
       </section>
 
       <!-- 当前曲库显示 -->
       <section id="music-info-section" class="hidden">
         <div class="music-info">
-          <span class="music-info-label" data-i18n="groupBattle.drawnMusic">抽到音乐</span>
+          <span class="music-info-label" data-i18n="group-battle.drawnMusic">抽到音乐</span>
           <span id="current-music-lib" class="music-info-track">-</span>
           <span id="current-music-source" class="music-info-source"></span>
         </div>
@@ -66,25 +66,25 @@
       <!-- 操作按钮 -->
       <section id="actions-section">
         <div class="actions">
-          <button id="match-groups-btn" class="hidden" data-i18n="groupBattle.matchGroups">随机匹配对战组</button>
-          <button id="draw-music-btn" class="hidden" data-i18n="groupBattle.drawMusic">抽取音乐</button>
-          <button id="start-battle-btn" class="hidden" data-i18n="groupBattle.startBattle">开始比赛</button>
-          <button id="clear-winner-btn" disabled data-i18n="groupBattle.clearWinner">撤消选择胜者</button>
-          <button id="next-match-btn" class="hidden" data-i18n="groupBattle.nextMatch">进入下一场</button>
-          <button id="reset-match-btn" class="hidden" data-i18n="groupBattle.resetMatch">重置当前对战</button>
-          <button id="next-round-btn" class="hidden" data-i18n="groupBattle.nextRound">进入第二大轮</button>
+          <button id="match-groups-btn" class="hidden" data-i18n="group-battle.matchGroups">随机匹配对战组</button>
+          <button id="draw-music-btn" class="hidden" data-i18n="group-battle.drawMusic">抽取音乐</button>
+          <button id="start-battle-btn" class="hidden" data-i18n="group-battle.startBattle">开始比赛</button>
+          <button id="clear-winner-btn" disabled data-i18n="group-battle.clearWinner">撤消选择胜者</button>
+          <button id="next-match-btn" class="hidden" data-i18n="group-battle.nextMatch">进入下一场</button>
+          <button id="reset-match-btn" class="hidden" data-i18n="group-battle.resetMatch">重置当前对战</button>
+          <button id="next-round-btn" class="hidden" data-i18n="group-battle.nextRound">进入第二大轮</button>
         </div>
       </section>
 
       <!-- 对战历史 -->
       <section id="history-section">
-        <h3 class="section-title" data-i18n="groupBattle.matchHistory">对战记录</h3>
+        <h3 class="section-title" data-i18n="group-battle.matchHistory">对战记录</h3>
         <div id="match-history"></div>
       </section>
 
       <section class="navigation">
-        <button id="reset-game-btn" data-i18n="groupBattle.resetGame">重置对战</button>
-        <button id="home-btn" data-i18n="ranking.backHome">回到主页</button>
+        <button id="reset-game-btn" data-i18n="group-battle.resetGame">重置对战</button>
+        <button id="home-btn" data-i18n="common.backHome">回到主页</button>
       </section>
 
       <footer><p>&copy; 2025 Y.Stage-X YUKAORI</p></footer>

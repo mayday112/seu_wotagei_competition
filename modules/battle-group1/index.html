@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>Prof对战</title>
+    <title data-i18n="battle-group1.pageTitle">Prof对战</title>
     <link rel="preload" as="image" href="/resource/images/bg.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于 style.css，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -13,12 +13,12 @@
   <body>
     <div class="container">
       <header>
-        <h1 data-i18n="battleGroup.profTitle">一年加组对战</h1>
+        <h1 data-i18n="battle-group1.profTitle">一年加组对战</h1>
       </header>
       <main>
         <section id="battle-info">
           <h2>
-            章节 <span id="chapter-number">1</span> - 轮次
+            <span data-i18n="battle-group1.chapterLabel">章节</span> <span id="chapter-number">1</span> - <span data-i18n="battle-group1.roundLabel">轮次</span>
             <span id="round-number">1/0</span>
           </h2>
         </section>
@@ -62,18 +62,18 @@
 
         <section id="tricks-pool-section">
           <div class="tricks-pool">
-            <h3>技池</h3>
+            <h3 data-i18n="battle-group1.trickPoolTitle">技池</h3>
             <!-- 布局：.grid-split 宽屏两栏 / 窄屏单列 -->
             <div class="tricks-pool-container grid-split">
               <div class="tricks-pool-player">
-                <h4>选手1技池</h4>
+                <h4 data-i18n="battle-group1.player1TrickPool">选手1技池</h4>
                 <div
                   id="tricks-pool-list-player1"
                   class="tricks-pool-list"
                 ></div>
               </div>
               <div class="tricks-pool-player">
-                <h4>选手2技池</h4>
+                <h4 data-i18n="battle-group1.player2TrickPool">选手2技池</h4>
                 <div
                   id="tricks-pool-list-player2"
                   class="tricks-pool-list"
@@ -84,9 +84,9 @@
         </section>
 
         <section class="navigation">
-          <button id="reset-game-btn">重置对战</button>
-          <button id="clear-cache-btn">清除缓存</button>
-          <button id="home-btn">回到主页面</button>
+          <button id="reset-game-btn" data-i18n="battle-group1.resetGame">重置对战</button>
+          <button id="clear-cache-btn" data-i18n="battle-group1.clearCache">清除缓存</button>
+          <button id="home-btn" data-i18n="battle-group1.homeBtn">回到主页面</button>
         </section>
       </main>
     </div>

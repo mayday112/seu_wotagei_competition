@@ -24,6 +24,7 @@ import { createReactiveScope, mountReactiveSafe } from "/web/lib/reactive.mjs";
 import { createTimerRegistry } from "/web/lib/timers.mjs";
 
 export function component(el, meta, ctx) {
+  const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
   // cleanup 契约：静态骨架节点的全部监听经 signal 登记，重渲染/卸载时 abort 统一解绑，
   // 防止不刷新页面的重复 render 造成双绑双触发
   // （动态节点上的监听不登记：随 innerHTML 清空连同节点一并释放）
@@ -110,7 +111,7 @@ export function component(el, meta, ctx) {
   // 返回主页按钮
   DOM.homeBtn.addEventListener("click", function () {
     if (State.hasChanges) {
-      showConfirmDialog("您有未保存的更改，确定要离开吗？", () => {
+      showConfirmDialog(t("setting.unsavedConfirm", "您有未保存的更改，确定要离开吗？"), () => {
         window.location.href = "/m/home";
       });
     } else {
@@ -282,7 +283,7 @@ export function component(el, meta, ctx) {
     }
 
     State.hasChanges = false;
-    showStatusMessage("功能开关设置已保存", "success");
+    showStatusMessage(t("setting.featureSaved", "功能开关设置已保存"), "success");
   }
 
   // 显示自定义确认对话框（P12 桥接：实现归 component-confirm-dialog 组件实例——单弹窗/
@@ -401,7 +402,7 @@ export function component(el, meta, ctx) {
       }
     } catch (error) {
       console.error("API请求错误:", error);
-      showStatusMessage(`请求失败: ${error.message}`, "error");
+      showStatusMessage(t("setting.requestFailed", `请求失败: ${error.message}`, { error: error.message }), "error");
       throw error;
     }
   }
@@ -420,7 +421,7 @@ export function component(el, meta, ctx) {
     DOM.playerFileSelect.addEventListener("change", function () {
       if (State.hasChanges) {
         showConfirmDialog(
-          "您有未保存的更改，切换文件将丢失这些更改。确定要继续吗？",
+          t("setting.switchFileConfirm", "您有未保存的更改，切换文件将丢失这些更改。确定要继续吗？"),
           () => {
             State.currentPlayerFile = this.value;
             loadPlayerData(State.currentPlayerFile);
@@ -510,11 +511,11 @@ export function component(el, meta, ctx) {
       // 重置表单
       resetPlayerForm();
 
-      if (!silent) showStatusMessage(`${fileType}.json 加载成功`);
+      if (!silent) showStatusMessage(t("setting.fileLoadSuccess", `${fileType}.json 加载成功`, { file: `${fileType}.json` }));
     } catch (error) {
       console.error(`加载${fileType}.json失败:`, error);
-      R.playerError = "加载失败，请重试";
-      showStatusMessage(`加载${fileType}.json失败`, "error");
+      R.playerError = t("setting.loadFailedRetry", "加载失败，请重试");
+      showStatusMessage(t("setting.fileLoadFailed", `加载${fileType}.json失败`, { file: `${fileType}.json` }), "error");
     } finally {
       R.playerLoading = false;
     }
@@ -532,10 +533,10 @@ export function component(el, meta, ctx) {
 
   // 删除选手
   function deletePlayer(index) {
-    showConfirmDialog("确定要删除这名选手吗？", () => {
+    showConfirmDialog(t("setting.deletePlayerConfirm", "确定要删除这名选手吗？"), () => {
       R.playerData.splice(index, 1);
       State.hasChanges = true;
-      showStatusMessage("选手已删除，点击保存以提交更改");
+      showStatusMessage(t("setting.playerDeleted", "选手已删除，点击保存以提交更改"));
     });
   }
 
@@ -544,18 +545,18 @@ export function component(el, meta, ctx) {
     const name = DOM.playerName.value.trim();
 
     if (!name) {
-      showStatusMessage("选手名称不能为空", "error");
+      showStatusMessage(t("setting.playerNameRequired", "选手名称不能为空"), "error");
       return;
     }
 
     if (State.playerEditing.active && State.playerEditing.id !== null) {
       // 更新已有选手
       R.playerData[State.playerEditing.id].name = name;
-      showStatusMessage("选手已更新，点击保存更改以提交", "success");
+      showStatusMessage(t("setting.playerUpdated", "选手已更新，点击保存更改以提交"), "success");
     } else {
       // 添加新选手
       R.playerData.push({ name });
-      showStatusMessage("选手已添加，点击保存更改以提交", "success");
+      showStatusMessage(t("setting.playerAdded", "选手已添加，点击保存更改以提交"), "success");
     }
 
     resetPlayerForm();
@@ -587,10 +588,10 @@ export function component(el, meta, ctx) {
       await fetchAPI(ENDPOINTS[State.currentPlayerFile], "POST", dataToSave);
 
       State.hasChanges = false;
-      showStatusMessage(`${State.currentPlayerFile}.json 保存成功`, "success");
+      showStatusMessage(t("setting.fileSaveSuccess", `${State.currentPlayerFile}.json 保存成功`, { file: `${State.currentPlayerFile}.json` }), "success");
     } catch (error) {
       console.error(`保存${State.currentPlayerFile}.json失败:`, error);
-      showStatusMessage(`保存失败: ${error.message}`, "error");
+      showStatusMessage(t("setting.saveFailed", `保存失败: ${error.message}`, { error: error.message }), "error");
     }
   }
 
@@ -637,7 +638,7 @@ export function component(el, meta, ctx) {
       if (file.name.toLowerCase().endsWith(".txt")) {
         processImportFile(file);
       } else {
-        showStatusMessage("请拖放TXT文本文件", "error");
+        showStatusMessage(t("setting.dropTxtError", "请拖放TXT文本文件"), "error");
       }
     }
   }
@@ -646,16 +647,16 @@ export function component(el, meta, ctx) {
   function processImportFile(file) {
     // 确认当前组别
     const currentGroup = State.currentPlayerFile;
-    const groupName = currentGroup === "player1" ? "一年加组" : "一年内组";
+    const groupName = currentGroup === "player1" ? t("setting.group1Name", "一年加组") : t("setting.group2Name", "一年内组");
 
     // 获取导入模式
     const importMode = document.querySelector(
       'input[name="import-mode"]:checked'
     ).value;
-    const actionText = importMode === "append" ? "添加到" : "替换";
+    const actionText = importMode === "append" ? t("setting.appendAction", "添加到") : t("setting.replaceAction", "替换");
 
     // 显示确认对话框
-    showConfirmDialog(`确定要${actionText}${groupName}选手列表吗？`, () => {
+    showConfirmDialog(t("setting.importPlayerConfirm", `确定要${actionText}${groupName}选手列表吗？`, { action: actionText, group: groupName }), () => {
       const reader = new FileReader();
 
       reader.onload = function (e) {
@@ -666,7 +667,7 @@ export function component(el, meta, ctx) {
           .filter((name) => name.length > 0);
 
         if (playerNames.length === 0) {
-          showStatusMessage("导入文件为空或格式不正确", "error");
+          showStatusMessage(t("setting.importEmptyError", "导入文件为空或格式不正确"), "error");
           return;
         }
 
@@ -674,7 +675,7 @@ export function component(el, meta, ctx) {
         if (importMode === "replace") {
           // 替换模式：清空现有列表
           R.playerData = playerNames.map((name) => ({ name }));
-          showStatusMessage(`已替换为${playerNames.length}名新选手`, "success");
+          showStatusMessage(t("setting.replacedPlayersCount", `已替换为${playerNames.length}名新选手`, { count: playerNames.length }), "success");
         } else {
           // 添加模式：添加到现有列表
           let addedCount = 0;
@@ -691,7 +692,7 @@ export function component(el, meta, ctx) {
           });
 
           showStatusMessage(
-            `成功导入${addedCount}名新选手到${groupName}`,
+            t("setting.importedPlayersCount", `成功导入${addedCount}名新选手到${groupName}`, { count: addedCount, group: groupName }),
             "success"
           );
         }
@@ -701,7 +702,7 @@ export function component(el, meta, ctx) {
       };
 
       reader.onerror = function () {
-        showStatusMessage("读取文件时发生错误", "error");
+        showStatusMessage(t("setting.readFileError", "读取文件时发生错误"), "error");
       };
 
       reader.readAsText(file);
@@ -736,7 +737,7 @@ export function component(el, meta, ctx) {
     DOM.trickFileSelect.addEventListener("change", function () {
       if (State.hasChanges) {
         showConfirmDialog(
-          "您有未保存的更改，切换文件将丢失这些更改。确定要继续吗？",
+          t("setting.switchFileConfirm", "您有未保存的更改，切换文件将丢失这些更改。确定要继续吗？"),
           () => {
             State.currentTrickFile = this.value;
             loadTrickData(State.currentTrickFile);
@@ -806,7 +807,7 @@ export function component(el, meta, ctx) {
               return { name: trick };
             } else if (typeof trick === "object") {
               // 如果是tricks.json，它的结构是{name: "技名"}
-              return { name: trick.name || "未命名技能" };
+              return { name: trick.name || t("setting.unnamedTrick", "未命名技能") };
             }
             return null;
           })
@@ -817,11 +818,11 @@ export function component(el, meta, ctx) {
       // 重置表单
       resetTrickForm();
 
-      if (!silent) showStatusMessage(`${fileType}.json 加载成功`);
+      if (!silent) showStatusMessage(t("setting.fileLoadSuccess", `${fileType}.json 加载成功`, { file: `${fileType}.json` }));
     } catch (error) {
       console.error(`加载${fileType}.json失败:`, error);
-      R.trickError = "加载失败，请重试";
-      showStatusMessage(`加载${fileType}.json失败`, "error");
+      R.trickError = t("setting.loadFailedRetry", "加载失败，请重试");
+      showStatusMessage(t("setting.fileLoadFailed", `加载${fileType}.json失败`, { file: `${fileType}.json` }), "error");
     } finally {
       R.trickLoading = false;
     }
@@ -839,10 +840,10 @@ export function component(el, meta, ctx) {
 
   // 删除技能
   function deleteTrick(index) {
-    showConfirmDialog("确定要删除这个技能吗？", () => {
+    showConfirmDialog(t("setting.deleteTrickConfirm", "确定要删除这个技能吗？"), () => {
       R.trickData.splice(index, 1);
       State.hasChanges = true;
-      showStatusMessage("技能已删除，点击保存以提交更改");
+      showStatusMessage(t("setting.trickDeleted", "技能已删除，点击保存以提交更改"));
     });
   }
 
@@ -851,18 +852,18 @@ export function component(el, meta, ctx) {
     const name = DOM.trickName.value.trim();
 
     if (!name) {
-      showStatusMessage("技能名称不能为空", "error");
+      showStatusMessage(t("setting.trickNameRequired", "技能名称不能为空"), "error");
       return;
     }
 
     if (State.trickEditing.active && State.trickEditing.id !== null) {
       // 更新已有技能
       R.trickData[State.trickEditing.id].name = name;
-      showStatusMessage("技能已更新，点击保存更改以提交", "success");
+      showStatusMessage(t("setting.trickUpdated", "技能已更新，点击保存更改以提交"), "success");
     } else {
       // 添加新技能
       R.trickData.push({ name });
-      showStatusMessage("技能已添加，点击保存更改以提交", "success");
+      showStatusMessage(t("setting.trickAdded", "技能已添加，点击保存更改以提交"), "success");
     }
 
     resetTrickForm();
@@ -895,10 +896,10 @@ export function component(el, meta, ctx) {
       await fetchAPI(ENDPOINTS[State.currentTrickFile], "POST", dataToSave);
 
       State.hasChanges = false;
-      showStatusMessage(`${State.currentTrickFile}.json 保存成功`, "success");
+      showStatusMessage(t("setting.fileSaveSuccess", `${State.currentTrickFile}.json 保存成功`, { file: `${State.currentTrickFile}.json` }), "success");
     } catch (error) {
       console.error(`保存${State.currentTrickFile}.json失败:`, error);
-      showStatusMessage(`保存失败: ${error.message}`, "error");
+      showStatusMessage(t("setting.saveFailed", `保存失败: ${error.message}`, { error: error.message }), "error");
     }
   }
 
@@ -968,7 +969,7 @@ export function component(el, meta, ctx) {
       if (file.name.toLowerCase().endsWith(".txt")) {
         processTrickImportFile(file);
       } else {
-        showStatusMessage("请拖放TXT文本文件", "error");
+        showStatusMessage(t("setting.dropTxtError", "请拖放TXT文本文件"), "error");
       }
     }
   }
@@ -987,7 +988,7 @@ export function component(el, meta, ctx) {
     const actionText = importMode === "append" ? "添加到" : "替换";
 
     // 显示确认对话框
-    showConfirmDialog(`确定要${actionText}${fileName}技能列表吗？`, () => {
+    showConfirmDialog(t("setting.importTrickConfirm", `确定要${actionText}${fileName}技能列表吗？`, { action: actionText, file: fileName }), () => {
       const reader = new FileReader();
 
       reader.onload = function (e) {
@@ -998,7 +999,7 @@ export function component(el, meta, ctx) {
           .filter((name) => name.length > 0);
 
         if (trickNames.length === 0) {
-          showStatusMessage("导入文件为空或格式不正确", "error");
+          showStatusMessage(t("setting.importEmptyError", "导入文件为空或格式不正确"), "error");
           return;
         }
 
@@ -1006,7 +1007,7 @@ export function component(el, meta, ctx) {
         if (importMode === "replace") {
           // 替换模式：清空现有列表
           R.trickData = trickNames.map((name) => ({ name }));
-          showStatusMessage(`已替换为${trickNames.length}个新技能`, "success");
+          showStatusMessage(t("setting.replacedTricksCount", `已替换为${trickNames.length}个新技能`, { count: trickNames.length }), "success");
         } else {
           // 添加模式：添加到现有列表
           let addedCount = 0;
@@ -1023,7 +1024,7 @@ export function component(el, meta, ctx) {
           });
 
           showStatusMessage(
-            `成功导入${addedCount}个新技能到${fileName}`,
+            t("setting.importedTricksCount", `成功导入${addedCount}个新技能到${fileName}`, { count: addedCount, file: fileName }),
             "success"
           );
         }
@@ -1033,7 +1034,7 @@ export function component(el, meta, ctx) {
       };
 
       reader.onerror = function () {
-        showStatusMessage("读取文件时发生错误", "error");
+        showStatusMessage(t("setting.readFileError", "读取文件时发生错误"), "error");
       };
 
       reader.readAsText(file);
@@ -1099,11 +1100,11 @@ export function component(el, meta, ctx) {
       // 重置表单
       resetAwardForm();
 
-      if (!silent) showStatusMessage("奖励数据加载成功");
+      if (!silent) showStatusMessage(t("setting.awardLoadSuccess", "奖励数据加载成功"));
     } catch (error) {
       console.error("加载奖励数据失败:", error);
-      R.awardError = `加载失败: ${error.message}`;
-      showStatusMessage(`加载奖励数据失败: ${error.message}`, "error");
+      R.awardError = t("setting.loadFailedWithMsg", `加载失败: ${error.message}`, { error: error.message });
+      showStatusMessage(t("setting.awardLoadFailed", `加载奖励数据失败: ${error.message}`, { error: error.message }), "error");
     } finally {
       R.awardLoading = false;
     }
@@ -1124,10 +1125,10 @@ export function component(el, meta, ctx) {
   // 删除奖励（P12：原内联 confirm-dialog 节点并入统一的 confirm 组件弹窗路径，
   // 依赖的 dialogNodes/closeDialog 登记随之删除；降级语义与 showConfirmDialog 一致）
   function deleteAward(index) {
-    showConfirmDialog("确定要删除这个奖励吗？", () => {
+    showConfirmDialog(t("setting.deleteAwardConfirm", "确定要删除这个奖励吗？"), () => {
       R.awardData.splice(index, 1);
       State.hasChanges = true;
-      showStatusMessage("奖励已删除，点击保存以提交更改");
+      showStatusMessage(t("setting.awardDeleted", "奖励已删除，点击保存以提交更改"));
     });
   }
 
@@ -1138,17 +1139,17 @@ export function component(el, meta, ctx) {
     const description = DOM.awardDescription.value.trim();
 
     if (isNaN(rank) || rank < 1 || rank > 5) {
-      showStatusMessage("排名必须是1到5之间的整数", "error");
+      showStatusMessage(t("setting.awardRankRangeError", "排名必须是1到5之间的整数"), "error");
       return;
     }
 
     if (!name) {
-      showStatusMessage("奖励名称不能为空", "error");
+      showStatusMessage(t("setting.awardNameRequired", "奖励名称不能为空"), "error");
       return;
     }
 
     if (!description) {
-      showStatusMessage("奖励描述不能为空", "error");
+      showStatusMessage(t("setting.awardDescRequired", "奖励描述不能为空"), "error");
       return;
     }
 
@@ -1158,7 +1159,7 @@ export function component(el, meta, ctx) {
         (award) => award.rank === rank
       );
       if (existingAwardIndex !== -1) {
-        if (!confirm(`已经存在第${rank}名的奖励，是否覆盖？`)) {
+        if (!confirm(t("setting.awardOverwriteConfirm", `已经存在第${rank}名的奖励，是否覆盖？`, { rank }))) {
           return;
         }
         // 找到该排名的索引并删除
@@ -1181,7 +1182,7 @@ export function component(el, meta, ctx) {
 
     resetAwardForm();
     State.hasChanges = true;
-    showStatusMessage("奖励已更新，点击保存以提交更改");
+    showStatusMessage(t("setting.awardUpdated", "奖励已更新，点击保存以提交更改"));
   }
 
   // 重置奖励表单
@@ -1197,10 +1198,10 @@ export function component(el, meta, ctx) {
       await fetchAPI(ENDPOINTS.award, "POST", R.awardData);
 
       State.hasChanges = false;
-      showStatusMessage("奖励数据保存成功", "success");
+      showStatusMessage(t("setting.awardSaveSuccess", "奖励数据保存成功"), "success");
     } catch (error) {
       console.error("保存奖励数据失败:", error);
-      showStatusMessage(`保存失败: ${error.message}`, "error");
+      showStatusMessage(t("setting.saveFailed", `保存失败: ${error.message}`, { error: error.message }), "error");
     }
   }
 
@@ -1290,7 +1291,7 @@ export function component(el, meta, ctx) {
   function validatePlayerName() {
     const value = DOM.playerName.value.trim();
     if (!value) {
-      DOM.playerName.setCustomValidity("选手名称不能为空");
+      DOM.playerName.setCustomValidity(t("setting.playerNameRequired", "选手名称不能为空"));
     } else {
       DOM.playerName.setCustomValidity("");
     }
@@ -1300,7 +1301,7 @@ export function component(el, meta, ctx) {
   function validateTrickName() {
     const value = DOM.trickName.value.trim();
     if (!value) {
-      DOM.trickName.setCustomValidity("技能名称不能为空");
+      DOM.trickName.setCustomValidity(t("setting.trickNameRequired", "技能名称不能为空"));
     } else {
       DOM.trickName.setCustomValidity("");
     }
@@ -1310,7 +1311,7 @@ export function component(el, meta, ctx) {
   function validateAwardRank() {
     const value = parseInt(DOM.awardRank.value);
     if (isNaN(value) || value < 1 || value > 5) {
-      DOM.awardRank.setCustomValidity("排名必须是1到5之间的整数");
+      DOM.awardRank.setCustomValidity(t("setting.awardRankRangeError", "排名必须是1到5之间的整数"));
     } else {
       DOM.awardRank.setCustomValidity("");
     }
@@ -1320,7 +1321,7 @@ export function component(el, meta, ctx) {
   function validateAwardName() {
     const value = DOM.awardName.value.trim();
     if (!value) {
-      DOM.awardName.setCustomValidity("奖励名称不能为空");
+      DOM.awardName.setCustomValidity(t("setting.awardNameRequired", "奖励名称不能为空"));
     } else {
       DOM.awardName.setCustomValidity("");
     }
@@ -1330,7 +1331,7 @@ export function component(el, meta, ctx) {
   function validateAwardDescription() {
     const value = DOM.awardDescription.value.trim();
     if (!value) {
-      DOM.awardDescription.setCustomValidity("奖励描述不能为空");
+      DOM.awardDescription.setCustomValidity(t("setting.awardDescRequired", "奖励描述不能为空"));
     } else {
       DOM.awardDescription.setCustomValidity("");
     }
@@ -1343,46 +1344,46 @@ export function component(el, meta, ctx) {
   // 加载态/错误态/空态经 loading/error 标志互斥渲染（替代旧 innerHTML 三态手写）。
   // 插值默认转义，替代旧 escapeHtml 手工防线；行内编辑/删除按钮监听由 petite-vue
   // 指令挂载并在 unmount 时统一解绑（替代旧逐项 addEventListener）。
-  const pencilIcon = icon("pencil", { size: 16, label: "编辑" });
-  const trashIcon = icon("trash", { size: 16, label: "删除" });
+  const pencilIcon = icon("pencil", { size: 16, label: t("common.edit", "编辑") });
+  const trashIcon = icon("trash", { size: 16, label: t("common.delete", "删除") });
 
   const PLAYER_LIST_TPL = `
-<li class="loading" v-if="playerLoading">加载中...</li>
+<li class="loading" v-if="playerLoading">{{ tLoading }}</li>
 <li class="error" v-if="playerError">{{ playerError }}</li>
-<li class="empty" v-if="!playerLoading && !playerError && playerData.length === 0">暂无选手数据</li>
+<li class="empty" v-if="!playerLoading && !playerError && playerData.length === 0">{{ tEmptyPlayers }}</li>
 <li v-for="(player, index) in playerLoading || playerError ? [] : playerData"
   :key="index" :data-index="index" :data-id="player.id || index">
   <span class="item-name">{{ player.name }}</span>
   <div class="item-actions">
-    <button class="edit-btn" title="编辑" @click="editPlayer(index)" v-html="pencilIcon"></button>
-    <button class="delete-btn" title="删除" @click="deletePlayer(index)" v-html="trashIcon"></button>
+    <button class="edit-btn" :title="tEdit" @click="editPlayer(index)" v-html="pencilIcon"></button>
+    <button class="delete-btn" :title="tDelete" @click="deletePlayer(index)" v-html="trashIcon"></button>
   </div>
 </li>`;
 
   const TRICK_LIST_TPL = `
-<li class="loading" v-if="trickLoading">加载中...</li>
+<li class="loading" v-if="trickLoading">{{ tLoading }}</li>
 <li class="error" v-if="trickError">{{ trickError }}</li>
-<li class="empty" v-if="!trickLoading && !trickError && trickData.length === 0">暂无技能数据</li>
+<li class="empty" v-if="!trickLoading && !trickError && trickData.length === 0">{{ tEmptyTricks }}</li>
 <li v-for="(trick, index) in trickLoading || trickError ? [] : trickData"
   :key="index" :data-index="index" :data-id="trick.id || index">
   <span class="item-name">{{ trick.name }}</span>
   <div class="item-actions">
-    <button class="edit-btn" title="编辑" @click="editTrick(index)" v-html="pencilIcon"></button>
-    <button class="delete-btn" title="删除" @click="deleteTrick(index)" v-html="trashIcon"></button>
+    <button class="edit-btn" :title="tEdit" @click="editTrick(index)" v-html="pencilIcon"></button>
+    <button class="delete-btn" :title="tDelete" @click="deleteTrick(index)" v-html="trashIcon"></button>
   </div>
 </li>`;
 
   const AWARD_LIST_TPL = `
-<li class="loading" v-if="awardLoading">加载中...</li>
+<li class="loading" v-if="awardLoading">{{ tLoading }}</li>
 <li class="error" v-if="awardError">{{ awardError }}</li>
-<li class="empty" v-if="!awardLoading && !awardError && awardData.length === 0">暂无奖励数据</li>
+<li class="empty" v-if="!awardLoading && !awardError && awardData.length === 0">{{ tEmptyAwards }}</li>
 <li v-for="(award, index) in awardLoading || awardError ? [] : awardData"
   :key="index" :data-index="index" :data-id="award.id || index">
-  <span class="item-name">第{{ Number(award.rank) || "?" }}名: {{ award.name }}</span>
+  <span class="item-name">{{ formatAwardTitle(award) }}</span>
   <div class="item-description">{{ award.description || "" }}</div>
   <div class="item-actions">
-    <button class="edit-btn" title="编辑" @click="editAward(index)" v-html="pencilIcon"></button>
-    <button class="delete-btn" title="删除" @click="deleteAward(index)" v-html="trashIcon"></button>
+    <button class="edit-btn" :title="tEdit" @click="editAward(index)" v-html="pencilIcon"></button>
+    <button class="delete-btn" :title="tDelete" @click="deleteAward(index)" v-html="trashIcon"></button>
   </div>
 </li>`;
 
@@ -1399,6 +1400,13 @@ export function component(el, meta, ctx) {
       awardError: "",
       pencilIcon,
       trashIcon,
+      tLoading: t("common.loading", "加载中..."),
+      tEmptyPlayers: t("setting.noPlayers", "暂无选手数据"),
+      tEmptyTricks: t("setting.noTricks", "暂无技能数据"),
+      tEmptyAwards: t("setting.noAwards", "暂无奖励数据"),
+      tEdit: t("common.edit", "编辑"),
+      tDelete: t("common.delete", "删除"),
+      formatAwardTitle: (award) => t("setting.awardRankItem", `第${Number(award.rank) || "?"}名: ${award.name}`, { rank: Number(award.rank) || "?", name: award.name }),
       // 行内按钮回调（闭包函数直挂：内部经闭包引用 R，不依赖 this 绑定）
       editPlayer,
       deletePlayer,

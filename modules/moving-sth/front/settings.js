@@ -16,6 +16,7 @@ import { createPersistence } from "/web/lib/persist.mjs";
 
 // 组件入口（原 DOMContentLoaded 初始化，kernel render 时执行）
 export function initMovingSthSettings(ctx) {
+  const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
   // cleanup 契约：静态骨架监听经 signal 登记，重渲染时 abort 统一解绑
   const bindAbort = new AbortController();
   const { signal } = bindAbort;
@@ -125,7 +126,7 @@ export function initMovingSthSettings(ctx) {
 
     const confirmButton = document.createElement("button");
     confirmButton.className = "dialog-confirm";
-    confirmButton.textContent = "确认";
+    confirmButton.textContent = t("moving-sth.confirm", "确认");
     confirmButton.addEventListener("click", () => {
       document.body.removeChild(dialogOverlay);
       if (onConfirm) onConfirm();
@@ -133,7 +134,7 @@ export function initMovingSthSettings(ctx) {
 
     const cancelButton = document.createElement("button");
     cancelButton.className = "dialog-cancel";
-    cancelButton.textContent = "取消";
+    cancelButton.textContent = t("moving-sth.cancel", "取消");
     cancelButton.addEventListener("click", () => {
       document.body.removeChild(dialogOverlay);
       if (onCancel) onCancel();
@@ -169,7 +170,7 @@ export function initMovingSthSettings(ctx) {
       opacityValue.textContent = `${percentage}%`;
     } catch (error) {
       console.error("加载设置失败:", error);
-      showNotification("加载设置失败，使用默认设置", "error");
+      showNotification(t("moving-sth.loadFailedUseDefault", "加载设置失败，使用默认设置"), "error");
       resetToDefaultSettings();
     }
   }
@@ -181,7 +182,7 @@ export function initMovingSthSettings(ctx) {
       const interfaceOpacity = parseFloat(opacitySettingInput.value);
 
       if (isNaN(timeLimit) || timeLimit < 1 || timeLimit > 300) {
-        showNotification("时间限制必须在1-300秒之间", "error");
+        showNotification(t("moving-sth.timeLimitRangeError", "时间限制必须在1-300秒之间"), "error");
         return;
       }
 
@@ -190,7 +191,7 @@ export function initMovingSthSettings(ctx) {
         interfaceOpacity < 0.1 ||
         interfaceOpacity > 1.0
       ) {
-        showNotification("透明度设置无效", "error");
+        showNotification(t("moving-sth.opacityInvalidError", "透明度设置无效"), "error");
         return;
       }
 
@@ -218,27 +219,27 @@ export function initMovingSthSettings(ctx) {
 
       if (!remote) {
         console.log("保存到服务器失败，但已保存到本地");
-        showNotification("已保存到本地，但服务器保存失败", "warning");
+        showNotification(t("moving-sth.savedLocalServerFailed", "已保存到本地，但服务器保存失败"), "warning");
         return;
       }
 
-      showNotification("设置已保存", "success");
+      showNotification(t("moving-sth.settingsSaved", "设置已保存"), "success");
     } catch (error) {
       console.error("保存设置失败:", error);
-      showNotification("保存设置失败", "error");
+      showNotification(t("moving-sth.saveFailed", "保存设置失败"), "error");
     }
   }
 
   // 重置为默认设置
   function resetToDefaultSettings() {
-    showConfirmDialog("确定要重置为默认设置吗？", () => {
+    showConfirmDialog(t("moving-sth.confirmResetDefault", "确定要重置为默认设置吗？"), () => {
       timeSettingInput.value = defaultSettings.timeLimit;
       opacitySettingInput.value = defaultSettings.interfaceOpacity;
       // 更新显示的百分比
       const percentage = Math.round(defaultSettings.interfaceOpacity * 100);
       opacityValue.textContent = `${percentage}%`;
 
-      showNotification("已重置为默认设置", "info");
+      showNotification(t("moving-sth.resetDefaultSuccess", "已重置为默认设置"), "info");
     });
   }
 

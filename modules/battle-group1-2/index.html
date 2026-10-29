@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>Prof对战 - 第二章节</title>
+    <title data-i18n="battle-group1-2.pageTitle">Prof对战 - 第二章节</title>
     <link rel="preload" as="image" href="/resource/images/bg.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于 style.css，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -13,22 +13,22 @@
   <body>
     <div class="container">
       <header>
-        <h1>一年加组对战 - 第二章节</h1>
-        <p class="subtitle">双败赛制</p>
+        <h1 data-i18n="battle-group1-2.profChapter2Title">一年加组对战 - 第二章节</h1>
+        <p class="subtitle" data-i18n="battle-group1-2.subtitle">双败赛制</p>
       </header>
       <main>
         <section id="battle-info">
           <h2>
-            章节 <span id="chapter-number">2</span> - 轮次
+            <span data-i18n="battle-group1-2.chapterLabel">章节</span> <span id="chapter-number">2</span> - <span data-i18n="battle-group1-2.roundLabel">轮次</span>
             <span id="round-number">1/6</span>
           </h2>
           <div id="tournament-status">
-            <span class="status-badge">胜者组</span>
+            <span class="status-badge" data-i18n="battle-group1-2.winnerBracket">胜者组</span>
           </div>
         </section>
 
         <section id="tournament-bracket">
-          <h3>赛程图</h3>
+          <h3 data-i18n="battle-group1-2.bracketTitle">赛程图</h3>
           <div class="bracket-container">
             <div id="bracket-display" class="horizontal-layout">
               <!-- 赛程图将通过JavaScript动态生成 -->
@@ -43,14 +43,14 @@
             <div class="player" id="player1">
               <h3 id="player1-name"></h3>
               <div class="player-record">
-                胜: <span id="player1-wins">0</span> 负:
+                <span data-i18n="battle-group1-2.winsLabel">胜:</span> <span id="player1-wins">0</span> <span data-i18n="battle-group1-2.lossesLabel">负:</span>
                 <span id="player1-losses">0</span>
               </div>
             </div>
             <div class="player" id="player2">
               <h3 id="player2-name"></h3>
               <div class="player-record">
-                胜: <span id="player2-wins">0</span> 负:
+                <span data-i18n="battle-group1-2.winsLabel">胜:</span> <span id="player2-wins">0</span> <span data-i18n="battle-group1-2.lossesLabel">负:</span>
                 <span id="player2-losses">0</span>
               </div>
             </div>
@@ -59,25 +59,25 @@
 
         <section id="actions-section">
           <div class="actions">
-            <button id="random-match-btn">随机匹配</button>
-            <button id="draw-music-btn">抽取音乐</button>
-            <button id="play-music-btn">播放音乐</button>
-            <button id="next-match-btn">下一场比赛</button>
+            <button id="random-match-btn" data-i18n="battle-group1-2.randomMatch">随机匹配</button>
+            <button id="draw-music-btn" data-i18n="tournament.drawMusic">抽取音乐</button>
+            <button id="play-music-btn" data-i18n="tournament.playMusic">播放音乐</button>
+            <button id="next-match-btn" data-i18n="battle-group1-2.nextMatch">下一场比赛</button>
           </div>
         </section>
 
         <!-- 布局：.grid-flow（auto-fit 320px）宽屏铺满 / 窄屏堆叠 -->
         <section id="battle-display" class="grid-flow">
           <div class="music">
-            <h3>随机抽取的音乐</h3>
-            <p><span id="music-name">音乐名称</span></p>
+            <h3 data-i18n="tournament.drawnMusic">随机抽取的音乐</h3>
+            <p><span id="music-name" data-i18n="tournament.musicName">音乐名称</span></p>
           </div>
         </section>
 
         <section class="navigation">
-          <button id="reset-game-btn">重置对战</button>
-          <button id="clear-cache-btn">清除缓存</button>
-          <button id="home-btn">回到主页面</button>
+          <button id="reset-game-btn" data-i18n="battle-group1-2.resetGame">重置对战</button>
+          <button id="clear-cache-btn" data-i18n="battle-group1-2.clearCache">清除缓存</button>
+          <button id="home-btn" data-i18n="battle-group1-2.homeBtn">回到主页面</button>
         </section>
       </main>
     </div>

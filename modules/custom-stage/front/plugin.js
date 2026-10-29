@@ -10,11 +10,13 @@
  * 页面组件同步返回 cleanup（先卸载 mounted 再 abort 监听），满足内核 render 契约。
  */
 import { customStageComponent } from "./view.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "custom-stage-front",
-  inject: ["ui"], // 页面仅用 ctx.ui；fetch 用原生（需 AbortController signal）
+  inject: ["ui", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "custom-stage",
       component(el, meta, componentCtx) {

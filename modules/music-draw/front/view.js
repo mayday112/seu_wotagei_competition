@@ -64,6 +64,10 @@ const DOM = {};
  * 交付）。调用点零改动。降级语义：组件缺失（enabled:false / 未注册）→ console.log */
 let toastApi = null;
 
+/** i18n 上下文与翻译辅助函数 */
+let ctx = null;
+const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
+
 /* =================================================================
  *  组件运行时 props（front/plugin.js 挂载时取用）
  *
@@ -88,7 +92,7 @@ export function componentProps(bridge) {
         textMs: 130,
         readyMs: 4500,
         hintMs: 1500,
-        hintText: "双击屏幕退出播放", // 文案与手势一致（迁移前 handleDoubleClick 即双击退出）
+        hintText: t("music-draw.stopHint", "双击屏幕退出播放"), // 文案与手势一致（迁移前 handleDoubleClick 即双击退出）
         hintId: null, // 无静态 #click-to-stop 节点，不留 id（多实例避免重复 id）
       },
       exitOnDblclick: true,
@@ -98,15 +102,15 @@ export function componentProps(bridge) {
         bridge.music[i] = api;
       },
       // 未抽到音乐即点比赛开始（迁移前 startBattle 的提示，文案逐字保留）
-      onEmpty: () => showToast("请先抽取音乐", "warning"),
-      onStarted: () => showToast("双击屏幕退出播放", "info"),
+      onEmpty: () => showToast(t("music-draw.pleaseDrawFirst", "请先抽取音乐"), "warning"),
+      onStarted: () => showToast(t("music-draw.stopHint", "双击屏幕退出播放"), "info"),
       onExited: ({ reason }) => {
         // 播放失败已单独提示（onError），不重复报"已退出播放"；其余退出原因与迁移前同文案
-        if (reason !== "error") showToast("已退出播放", "info");
+        if (reason !== "error") showToast(t("music-draw.exitedPlay", "已退出播放"), "info");
       },
       onError: (err) => {
         console.error("音乐播放失败:", err);
-        showToast("音乐播放失败", "error");
+        showToast(t("music-draw.playFailed", "音乐播放失败"), "error");
       },
     })),
     "draw-machine": LIBRARIES.map((lib, i) => ({
@@ -126,7 +130,7 @@ export function componentProps(bridge) {
       onReady: (api) => {
         bridge.draw[i] = api;
       },
-      onEmpty: () => showToast("音乐列表为空，请等待加载完成", "error"),
+      onEmpty: () => showToast(t("music-draw.listEmptyWait", "音乐列表为空，请等待加载完成"), "error"),
       onResult: (item) => {
         console.log("抽取到的音乐:", item);
         state.drawnMusic[lib.key] = item;
@@ -139,7 +143,7 @@ export function componentProps(bridge) {
         const musicApi = bridge.music[i];
         if (musicApi) musicApi.setItem(item);
 
-        showToast(`已抽取音乐：${item}`, "success");
+        showToast(t("music-draw.drawnMusicToast", `已抽取音乐：${item}`, { music: item }), "success");
       },
     })),
   };
@@ -148,11 +152,13 @@ export function componentProps(bridge) {
 /* =================================================================
  *  组件入口（原 DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
-export function musicDrawComponent(el, meta, ctx, bridge) {
+export function musicDrawComponent(el, meta, componentCtx, bridge) {
   // cleanup 契约：静态骨架全部监听经 signal 登记，重渲染时 abort 统一解绑，
   // 防止不刷新页面的重复 render 造成双绑双触发
   const bindAbort = new AbortController();
   const { signal } = bindAbort;
+
+  ctx = componentCtx;
 
   // P12：接桥 toast 组件 API（实例由 front/plugin.js 组件体内创建并经 bridge 交付；
   // 组件缺失时 bridge.toast 为 null，showToast 降级 console.log）
@@ -174,8 +180,9 @@ function cacheDOM() {
   // 静态骨架图标：h1 标题两侧装饰音符（原 HTML 内 emoji → Tabler SVG）
   const title = document.querySelector("header h1");
   if (title) {
-    title.innerHTML =
-      `${icon("music", { size: 34 })} 直接抽取音乐 ${icon("music", { size: 34 })}`;
+    const titleText = t("music-draw.title", "直接抽取音乐");
+    title.innerHTML = `${icon("music", { size: 34 })} ${titleText} ${icon("music", { size: 34 })}`;
+
   }
 }
 
@@ -231,14 +238,14 @@ function loadMusicLists() {
       console.log("完整数据:", state.musicLists);
 
       if (list1.length === 0 && list2.length === 0 && list3.length === 0) {
-        showToast("警告：所有音乐列表为空", "warning");
+        showToast(t("music-draw.warnAllEmpty", "警告：所有音乐列表为空"), "warning");
       } else {
-        showToast("音乐列表加载成功", "success");
+        showToast(t("music-draw.loadSuccess", "音乐列表加载成功"), "success");
       }
     })
     .catch((err) => {
       console.error("加载音乐列表失败:", err);
-      showToast("音乐列表加载失败", "error");
+      showToast(t("music-draw.loadFailed", "音乐列表加载失败"), "error");
     });
 }
 

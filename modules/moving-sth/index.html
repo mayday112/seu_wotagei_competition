@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>Y.Stage 4 - 定时搬化棒</title>
+    <title data-i18n="moving-sth.pageTitle">Y.Stage 4 - 定时搬化棒</title>
     <link rel="preload" as="image" href="/resource/images/bg_index.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于 style.css，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -18,8 +18,8 @@
 
     <div class="container">
       <header>
-        <h1>定时搬化棒</h1>
-        <p class="subtitle">计时器</p>
+        <h1 data-i18n="moving-sth.title">定时搬化棒</h1>
+        <p class="subtitle" id="timer-title" data-i18n="moving-sth.subtitle">计时器</p>
       </header>
 
       <main>
@@ -27,29 +27,29 @@
           <div class="timer-section">
             <div class="timer" id="timer">00:00</div>
             <div class="current-music">
-              <span id="music-name">准备播放音乐...</span>
+              <span id="music-name" data-i18n="moving-sth.readyMusic">准备播放音乐...</span>
             </div>
             <!-- 布局：.grid-flow（auto-fit）宽屏一行 / 窄屏连续折行，零媒体查询 -->
             <div class="timer-controls grid-flow">
-              <button id="start-timer-btn">开始</button>
-              <button id="pause-timer-btn" disabled>暂停</button>
-              <button id="reset-timer-btn">重置</button>
+              <button id="start-timer-btn" data-i18n="moving-sth.start">开始</button>
+              <button id="pause-timer-btn" data-i18n="moving-sth.pause" disabled>暂停</button>
+              <button id="reset-timer-btn" data-i18n="moving-sth.reset">重置</button>
             </div>
           </div>
 
           <div class="time-setting">
-            <span>限时：</span>
+            <span data-i18n="moving-sth.timeLimitLabel">限时：</span>
             <span id="time-limit">60</span>
-            <span>秒</span>
+            <span data-i18n="moving-sth.secondsUnit">秒</span>
           </div>
         </div>
       </main>
 
       <!-- 布局：.grid-flow（auto-fit）宽屏一行 / 窄屏单列，零媒体查询 -->
       <div class="navigation grid-flow">
-        <button id="settings-btn">设置</button>
-        <button id="back-btn">返回游戏中心</button>
-        <button id="home-btn">返回主页</button>
+        <button id="settings-btn" data-i18n="moving-sth.settings">设置</button>
+        <button id="back-btn" data-i18n="moving-sth.backToGames">返回游戏中心</button>
+        <button id="home-btn" data-i18n="moving-sth.backHome">返回主页</button>
       </div>
 
       <footer>
@@ -59,11 +59,11 @@
 
     <div id="result-modal" class="modal">
       <div class="modal-content">
-        <h2 id="result-title">时间到！</h2>
-        <p id="result-message">计时结束</p>
+        <h2 id="result-title" data-i18n="moving-sth.timeUp">时间到！</h2>
+        <p id="result-message" data-i18n="moving-sth.timeEnded">计时结束</p>
         <div class="modal-buttons">
-          <button id="try-again-btn">再试一次</button>
-          <button id="back-to-menu-btn">返回菜单</button>
+          <button id="try-again-btn" data-i18n="moving-sth.tryAgain">再试一次</button>
+          <button id="back-to-menu-btn" data-i18n="moving-sth.backToMenu">返回菜单</button>
         </div>
       </div>
     </div>

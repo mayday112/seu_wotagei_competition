@@ -11,10 +11,14 @@
  * 降级：某主题 factory 抛错 → 该卡显示错误提示，不影响其余卡片；API 不可达 →
  * 读 localStorage 兜底并标注"仅本机"。
  */
+import { registerLocales } from "./locales/index.mjs";
+import { t } from "/web/lib/i18n.mjs";
+
 export default {
   name: "theme-manager-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "theme-manager",
       component(el, meta, ctx2) {
@@ -61,7 +65,7 @@ export default {
 
         /** 写系统级偏好（服务端 + 本机双写）→ 刷新生效 */
         async function applyTheme(id) {
-          setStatus("正在切换…");
+          setStatus(t("theme-manager.status.switching"));
           let res;
           try {
             res = await fetch("/api/theme/active", {
@@ -72,17 +76,17 @@ export default {
           } catch (e) {
             // 网络失败（服务端不可达）→ 本机单写兜底，刷新后按本机偏好显示
             writeThemeStorage(id);
-            setStatus(`服务端不可达（${e.message}），已仅在本机生效，即将刷新…`, true);
+            setStatus(t("theme-manager.status.unreachableLocalOnly", { error: e.message }), true);
             setTimeout(() => window.location.reload(), 850);
             return;
           }
           // HTTP 拒绝（服务端可达但明确拒绝）→ 就地报错，不做任何写入
           if (!res.ok) {
-            setStatus(`服务端拒绝了该主题（HTTP ${res.status}），未做更改`, true);
+            setStatus(t("theme-manager.status.serverRejected", { status: res.status }), true);
             return;
           }
           writeThemeStorage(id);
-          setStatus(`已切换为「${id === "default" ? "默认主题" : id}」，即将刷新…`);
+          setStatus(t("theme-manager.status.switchSuccess", { theme: id === "default" ? t("theme-manager.defaultCard.name") : id }));
           setTimeout(() => window.location.reload(), 550);
         }
 
@@ -96,7 +100,7 @@ export default {
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "tm-use-btn";
-          btn.textContent = active ? "当前系统主题" : "设为系统主题";
+          btn.textContent = active ? t("theme-manager.buttons.currentSystemTheme") : t("theme-manager.buttons.setAsSystemTheme");
           btn.disabled = active;
           btn.addEventListener("click", () => applyTheme(id), { signal });
           return btn;
@@ -112,7 +116,7 @@ export default {
               serverOk = true;
             }
           } catch (e) { /* 接口不可达 → 本机偏好兜底 */ }
-          if (!serverOk) setStatus("主题服务不可达：当前按本机记忆显示", true);
+          if (!serverOk) setStatus(t("theme-manager.status.unreachableLocalMemory"), true);
 
           // —— 默认主题卡（静态兜底，非插件） ——
           const defaultCard = makeCard(active === "default");
@@ -128,7 +132,7 @@ export default {
           if (active === "default") {
             const badge = document.createElement("span");
             badge.className = "tm-active-badge";
-            badge.textContent = "当前主题";
+            badge.textContent = t("theme-manager.defaultCard.activeBadge");
             defaultCard.querySelector(".tm-theme-meta").prepend(badge);
           }
           defaultCard.append(makeUseBtn("default", active === "default"));
@@ -153,7 +157,7 @@ export default {
                 }, { once: true });
               }
             } catch (e) {
-              body.innerHTML = `<span class="tm-theme-desc">主题「${id}」预览渲染失败：${e.message}</span>`;
+              body.innerHTML = `<span class="tm-theme-desc">${t("theme-manager.status.renderFailed", { id, error: e.message })}</span>`;
               console.error(`[theme-manager] 主题 ${id} 预览失败:`, e);
             }
             card.append(makeUseBtn(id, active === id));
@@ -161,10 +165,10 @@ export default {
           }
 
           if (themeNames.length === 0 && active !== "default") {
-            setStatus("未发现任何主题插件（主题已按记忆回退显示）", true);
+            setStatus(t("theme-manager.status.noThemePlugins"), true);
           }
         })().catch((e) => {
-          setStatus("页面初始化失败：" + e.message, true);
+          setStatus(t("theme-manager.status.initFailed", { error: e.message }), true);
           console.error("[theme-manager] 初始化失败:", e);
         });
 

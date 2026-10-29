@@ -7,11 +7,13 @@
  * DOM 操作统一发生在 component 被调用时（见 ./view.js）。
  */
 import { component } from "./view.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "setting-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({ key: "setting", component });
   },
 };

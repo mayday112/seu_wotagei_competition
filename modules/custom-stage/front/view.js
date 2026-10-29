@@ -15,6 +15,7 @@
 import { icon } from "/web/icons.mjs";
 import { mountFromConfig } from "/web/components/compose.mjs";
 import { layoutToConfig, stageItems, buildRuntimeProps } from "./layout.mjs";
+import { t } from "/web/lib/i18n.mjs";
 
 const LAYOUTS_API = "/api/game-composer/layouts"; // origin 相对路径
 const COMPOSER_URL = "/m/game-composer/";
@@ -46,23 +47,23 @@ function shellPage(titleHtml, toolsHtml) {
 }
 
 /** 列表视图头部标题 */
-const LIST_TITLE = `${icon("apps", { size: 22 })}<span>组合舞台</span>`;
+function getListTitle() { return `${icon("apps", { size: 22 })}<span>${t("custom-stage.title")}</span>`; }
 
 function renderLoading(el) {
-  el.innerHTML = shellPage(LIST_TITLE);
+  el.innerHTML = shellPage(getListTitle());
   el.querySelector(".custom-stage-body").innerHTML =
-    `<p class="stage-msg">${icon("info-circle", { size: 18 })}<span>正在加载布局…</span></p>`;
+    `<p class="stage-msg">${icon("info-circle", { size: 18 })}<span>${t("custom-stage.loading")}</span></p>`;
 }
 
 /** 列表视图：布局卡片网格 / 空列表引导 */
 function renderList(el, list) {
-  el.innerHTML = shellPage(LIST_TITLE);
+  el.innerHTML = shellPage(getListTitle());
   const body = el.querySelector(".custom-stage-body");
   if (!list.length) {
     body.innerHTML = `
       <div class="stage-empty">
-        <p class="stage-msg">${icon("info-circle", { size: 18 })}<span>还没有保存过的布局。先到「可视化编排」拖积木组一个赛制，保存后即可在这里运行。</span></p>
-        <a class="stage-link" href="${COMPOSER_URL}">${icon("layout-grid", { size: 16 })}<span>去可视化编排</span></a>
+        <p class="stage-msg">${icon("info-circle", { size: 18 })}<span>${t("custom-stage.empty.noLayouts")}</span></p>
+        <a class="stage-link" href="${COMPOSER_URL}">${icon("layout-grid", { size: 16 })}<span>${t("custom-stage.empty.goToComposer")}</span></a>
       </div>`;
     return;
   }
@@ -70,9 +71,9 @@ function renderList(el, list) {
     .filter((layout) => layout && layout.id)
     .map((layout) => `
       <section class="card stage-card">
-        <div class="stage-card__name">${escapeHtml(layout.name || "未命名布局")}</div>
-        <div class="stage-card__time">更新于 ${escapeHtml(formatTime(layout.updatedAt))}</div>
-        <a class="stage-card__open" href="?layout=${encodeURIComponent(layout.id)}">${icon("chevron-right", { size: 16 })}<span>打开</span></a>
+        <div class="stage-card__name">${escapeHtml(layout.name || t("custom-stage.unnamedLayout"))}</div>
+        <div class="stage-card__time">${t("custom-stage.updatedAt", { time: escapeHtml(formatTime(layout.updatedAt)) })}</div>
+        <a class="stage-card__open" href="?layout=${encodeURIComponent(layout.id)}">${icon("chevron-right", { size: 16 })}<span>${t("custom-stage.open")}</span></a>
       </section>`)
     .join("");
   body.innerHTML = `<div class="grid-cards">${cards}</div>`;
@@ -85,20 +86,20 @@ function renderList(el, list) {
 function renderRun(el, list, layoutId, ctx, adoptMount) {
   const layout = list.find((item) => item && item.id === layoutId) || null;
   if (!layout) {
-    el.innerHTML = shellPage(LIST_TITLE);
+    el.innerHTML = shellPage(getListTitle());
     el.querySelector(".custom-stage-body").innerHTML = `
       <div class="stage-empty">
-        <p class="stage-msg">${icon("alert-triangle", { size: 18 })}<span>找不到该布局（可能已被删除）。</span></p>
-        <a class="stage-link" href="${STAGE_URL}">${icon("arrow-left", { size: 16 })}<span>返回布局列表</span></a>
+        <p class="stage-msg">${icon("alert-triangle", { size: 18 })}<span>${t("custom-stage.empty.layoutNotFound")}</span></p>
+        <a class="stage-link" href="${STAGE_URL}">${icon("arrow-left", { size: 16 })}<span>${t("custom-stage.empty.backToList")}</span></a>
       </div>`;
     return;
   }
 
   el.innerHTML = shellPage(
-    `<span>${escapeHtml(layout.name || "未命名布局")}</span>`,
+    `<span>${escapeHtml(layout.name || t("custom-stage.unnamedLayout"))}</span>`,
     `
-      <a class="stage-link" href="${STAGE_URL}">${icon("arrow-left", { size: 16 })}<span>更换布局</span></a>
-      <a class="stage-link" href="${COMPOSER_URL}?layout=${encodeURIComponent(layout.id)}">${icon("layout-grid", { size: 16 })}<span>编辑此布局</span></a>`,
+      <a class="stage-link" href="${STAGE_URL}">${icon("arrow-left", { size: 16 })}<span>${t("custom-stage.tools.changeLayout")}</span></a>
+      <a class="stage-link" href="${COMPOSER_URL}?layout=${encodeURIComponent(layout.id)}">${icon("layout-grid", { size: 16 })}<span>${t("custom-stage.tools.editLayout")}</span></a>`,
   );
   const body = el.querySelector(".custom-stage-body");
   try {
@@ -107,8 +108,8 @@ function renderRun(el, list, layoutId, ctx, adoptMount) {
       // 空布局（API 允许存盘）：不调 mountFromConfig（零装配），给引导提示
       body.innerHTML = `
         <div class="stage-empty">
-          <p class="stage-msg">${icon("info-circle", { size: 18 })}<span>此布局暂无组件。</span></p>
-          <a class="stage-link" href="${COMPOSER_URL}">${icon("layout-grid", { size: 16 })}<span>去添加组件</span></a>
+          <p class="stage-msg">${icon("info-circle", { size: 18 })}<span>${t("custom-stage.empty.noComponents")}</span></p>
+          <a class="stage-link" href="${COMPOSER_URL}">${icon("layout-grid", { size: 16 })}<span>${t("custom-stage.empty.goToAddComponents")}</span></a>
         </div>`;
       return;
     }
@@ -134,19 +135,19 @@ function renderRun(el, list, layoutId, ctx, adoptMount) {
     console.error("[custom-stage] 布局渲染失败:", e);
     body.innerHTML = `
       <div class="stage-empty">
-        <p class="stage-msg stage-msg--error">${icon("alert-triangle", { size: 18 })}<span>布局渲染失败（组件名非法或组件不可用）。</span></p>
-        <a class="stage-link" href="${STAGE_URL}">${icon("arrow-left", { size: 16 })}<span>返回布局列表</span></a>
+        <p class="stage-msg stage-msg--error">${icon("alert-triangle", { size: 18 })}<span>${t("custom-stage.errors.renderFailed")}</span></p>
+        <a class="stage-link" href="${STAGE_URL}">${icon("arrow-left", { size: 16 })}<span>${t("custom-stage.empty.backToList")}</span></a>
       </div>`;
   }
 }
 
 /** 加载失败：错误行 + 重试按钮（不白屏） */
 function renderError(el, error, onRetry, signal) {
-  el.innerHTML = shellPage(LIST_TITLE);
+  el.innerHTML = shellPage(getListTitle());
   el.querySelector(".custom-stage-body").innerHTML = `
     <div class="stage-empty">
-      <p class="stage-msg stage-msg--error">${icon("alert-triangle", { size: 18 })}<span>布局列表加载失败（${escapeHtml(error && error.message ? error.message : String(error))}）</span></p>
-      <button type="button" class="stage-btn">${icon("refresh", { size: 16 })}<span>重试</span></button>
+      <p class="stage-msg stage-msg--error">${icon("alert-triangle", { size: 18 })}<span>${t("custom-stage.errors.loadFailed", { error: escapeHtml(error && error.message ? error.message : String(error)) })}</span></p>
+      <button type="button" class="stage-btn">${icon("refresh", { size: 16 })}<span>${t("custom-stage.errors.retry")}</span></button>
     </div>`;
   el.querySelector(".stage-btn").addEventListener("click", onRetry, { signal });
 }

@@ -20,6 +20,7 @@
  */
 import { battleGroup22Component, componentProps } from "./view.js";
 import { mountFromConfig } from "/web/components/compose.mjs";
+import { registerLocales } from "./locales/index.mjs";
 
 /** 插槽兜底（清单未声明 slots 时的缺省选择器，键 = 组件名，与 index.html 的 data-slot 对应） */
 const DEFAULT_SLOTS = {
@@ -29,8 +30,9 @@ const DEFAULT_SLOTS = {
 
 export default {
   name: "battle-group2-2-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "battle-group2-2",
       component(el, meta, componentCtx) {
@@ -43,7 +45,7 @@ export default {
           ctx,
           label: "battle-group2-2",
           defaultSlots: DEFAULT_SLOTS,
-          runtimeProps: componentProps(bridge),
+          runtimeProps: componentProps(bridge, ctx),
         });
 
         const cleanupPage = battleGroup22Component(el, meta, ctx, bridge);

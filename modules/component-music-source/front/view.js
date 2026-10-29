@@ -68,7 +68,7 @@ export function createMusicSource(host, props = {}, ctx) {
   const statusEl = root.querySelector(".music-source__status");
 
   titleEl.textContent =
-    typeof props.title === "string" && props.title.trim() ? props.title : "曲库数据源";
+    typeof props.title === "string" && props.title.trim() ? props.title : (ctx?.i18n?.t ? ctx.i18n.t("component-music-source.title", "曲库数据源") : "曲库数据源");
   const titleIcon = iconEl("music"); // 装饰性图标（相邻有标题文字，无需 label）
   if (titleIcon) titleEl.prepend(titleIcon);
 
@@ -76,9 +76,10 @@ export function createMusicSource(host, props = {}, ctx) {
   const refreshBtn = document.createElement("button");
   refreshBtn.type = "button";
   refreshBtn.className = "music-source__refresh";
-  refreshBtn.setAttribute("aria-label", "刷新曲库");
-  refreshBtn.title = "刷新曲库";
-  const refreshIcon = iconEl("refresh", { label: "刷新曲库" });
+  const refreshLabel = ctx?.i18n?.t ? ctx.i18n.t("component-music-source.refresh", "刷新曲库") : "刷新曲库";
+  refreshBtn.setAttribute("aria-label", refreshLabel);
+  refreshBtn.title = refreshLabel;
+  const refreshIcon = iconEl("refresh", { label: refreshLabel });
   if (refreshIcon) refreshBtn.append(refreshIcon);
   actionsEl.append(refreshBtn);
 
@@ -92,7 +93,7 @@ export function createMusicSource(host, props = {}, ctx) {
       if (g.key === group) btn.classList.add("music-source__group--active");
       btn.setAttribute("aria-pressed", g.key === group ? "true" : "false");
       btn.dataset.group = g.key;
-      btn.textContent = g.label;
+      btn.textContent = ctx?.i18n?.t ? ctx.i18n.t("component-music-source.groups." + g.key, g.label) : g.label;
       groupsEl.append(btn);
     }
   }
@@ -113,11 +114,12 @@ export function createMusicSource(host, props = {}, ctx) {
     statusEl.classList.add("music-source__status--error");
     const span = document.createElement("span");
     span.className = "music-source__status-text";
-    span.textContent = `曲库加载失败（${label}）`;
+    const groupName = ctx?.i18n?.t ? ctx.i18n.t("component-music-source.groups." + group, label) : label;
+    span.textContent = ctx?.i18n?.t ? ctx.i18n.t("component-music-source.loadFailed", { label: groupName }, `曲库加载失败（${groupName}）`) : `曲库加载失败（${groupName}）`;
     const retry = document.createElement("button");
     retry.type = "button";
     retry.className = "music-source__retry";
-    retry.textContent = "重试";
+    retry.textContent = ctx?.i18n?.t ? ctx.i18n.t("component-music-source.retry", "重试") : "重试";
     statusEl.append(span, retry);
   }
 
@@ -126,7 +128,7 @@ export function createMusicSource(host, props = {}, ctx) {
     if (loadCtrl) loadCtrl.abort();
     loadCtrl = new AbortController();
     const fetchSignal = loadCtrl.signal;
-    renderStatus("曲库加载中…");
+    renderStatus(ctx?.i18n?.t ? ctx.i18n.t("component-music-source.loading", "曲库加载中…") : "曲库加载中…");
 
     fetch(`/api/music_files?group=${encodeURIComponent(group)}`, { signal: fetchSignal })
       .then((r) => {
@@ -142,7 +144,8 @@ export function createMusicSource(host, props = {}, ctx) {
             folder: group, // 消费端 itemFolder(item) 取 item.folder → /resource/musics/<group>/
           }))
           .filter((it) => it.name);
-        renderStatus(`共 ${list.length} 曲`);
+        const countText = ctx?.i18n?.t ? ctx.i18n.t("component-music-source.totalCount", { count: list.length }, `共 ${list.length} 曲`) : `共 ${list.length} 曲`;
+        renderStatus(countText);
       })
       .catch(() => {
         if (fetchSignal.aborted || signal.aborted) return; // 中止（切组/卸载）不算失败

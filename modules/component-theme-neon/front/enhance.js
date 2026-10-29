@@ -81,7 +81,7 @@ function watchDynamic(containerSel, decorate) {
  * 各页增强
  * ============================================================ */
 
-function enhanceHome() {
+function enhanceHome(ctx) {
   ensureRails("異度沸騰ヲタ芸団", "STAGE 5 · 2027");
   const header = document.querySelector("header");
   dressHeader(header, "WOTA-GEI BATTLE PLATFORM · 2027", "異度沸騰ヲタ芸団 · 比賽現場");
@@ -118,7 +118,8 @@ function enhanceHome() {
       if (btn.dataset.ntCard && !btn.dataset.ntDesc && info && info.description) {
         btn.dataset.ntDesc = "1";
         const desc = btn.querySelector(".nt-card-desc");
-        if (desc) desc.textContent = info.description;
+        const i18nDesc = ctx?.i18n?.t ? ctx.i18n.t(`modules.${info.id}.desc`, info.description) : info.description;
+        if (desc) desc.textContent = i18nDesc;
       }
     });
   };
@@ -329,9 +330,9 @@ function enhanceMusicDraw() {
 /* ============================================================
  * 入口：仅主题激活时调用（plugin.js 装配完成同步判定后）
  * ============================================================ */
-export function applyEnhancements(page) {
+export function applyEnhancements(page, ctx) {
   try {
-    if (page === "home") return enhanceHome();
+    if (page === "home") return enhanceHome(ctx);
     if (page === "select") return enhanceSelect();
     if (page === "games") return enhanceGames();
     if (/^battle-group/.test(page)) return enhanceBattle(page);

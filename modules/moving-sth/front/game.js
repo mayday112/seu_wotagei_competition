@@ -25,6 +25,11 @@ import { createPersistence } from "/web/lib/persist.mjs";
 /* =================================================================
  *  core：游戏状态（原 moving_sth_core.js）
  * ================================================================= */
+let pageI18n = null;
+function t(key, fb, params) {
+  return pageI18n ? pageI18n.t(key, params ?? fb, fb) : fb;
+}
+
 const GameState = {
   isPlaying: false,
   isPaused: false,
@@ -258,7 +263,7 @@ function showCountdown() {
         playStartSound();
 
         // 显示"开始!"文本
-        countdownContainer.textContent = "开始!";
+        countdownContainer.textContent = t("moving-sth.countdownStart", "开始!");
         countdownContainer.classList.add("start-animation");
 
         // 倒计时结束，移除元素并解析Promise
@@ -385,17 +390,17 @@ function updateButtonStates() {
   if (GameState.isPlaying && !GameState.isPaused) {
     startBtn.disabled = true;
     pauseBtn.disabled = false;
-    pauseBtn.textContent = "暂停";
+    pauseBtn.textContent = t("moving-sth.pause", "暂停");
     resetBtn.disabled = false;
   } else if (GameState.isPaused) {
     startBtn.disabled = true;
     pauseBtn.disabled = false;
-    pauseBtn.textContent = "继续";
+    pauseBtn.textContent = t("moving-sth.resume", "继续");
     resetBtn.disabled = false;
   } else {
     startBtn.disabled = false;
     pauseBtn.disabled = true;
-    pauseBtn.textContent = "暂停";
+    pauseBtn.textContent = t("moving-sth.pause", "暂停");
     resetBtn.disabled = GameState.isGameOver === false;
   }
 }
@@ -540,8 +545,8 @@ function showResultModal() {
   const resultTitle = document.getElementById("result-title");
   const resultMessage = document.getElementById("result-message");
 
-  resultTitle.textContent = "时间到！";
-  resultMessage.textContent = "计时结束";
+  resultTitle.textContent = t("moving-sth.timeUp", "时间到！");
+  resultMessage.textContent = t("moving-sth.timeEnded", "计时结束");
 
   resultTitle.style.color = "var(--primary-color)";
   resultModal.classList.add("show");
@@ -812,6 +817,7 @@ function useDefaultSettings() {
  *  组件入口（原 core/ui 的 DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
 export function initMovingSthGame(ctx) {
+  pageI18n = ctx && ctx.i18n ? ctx.i18n : null;
   // cleanup 契约：静态骨架节点 + document/window 监听全部经 signal 登记，
   // 重渲染时 abort 统一解绑，防止不刷新页面的重复 render 双绑双触发
   const bindAbort = new AbortController();

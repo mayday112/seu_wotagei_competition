@@ -24,6 +24,7 @@
  */
 import { icon } from "/web/icons.mjs";
 import { createReactiveScope, mountReactiveSafe } from "/web/lib/reactive.mjs";
+import { t } from "/web/lib/i18n.mjs";
 import { mountFromConfig } from "/web/components/compose.mjs";
 import {
   PALETTE_META,
@@ -61,35 +62,35 @@ const TEMPLATE = `
   <header class="gcmp-header">
     <div class="gcmp-brand">
       <span class="gcmp-brand-ic" aria-hidden="true" v-html="IC.layoutGrid"></span>
-      <h1>可视化编排</h1>
-      <span class="gcmp-dirty" v-if="dirty" role="status">未保存</span>
+      <h1>{{ t("game-composer.title") }}</h1>
+      <span class="gcmp-dirty" v-if="dirty" role="status">{{ t("game-composer.dirty") }}</span>
       <a class="gcmp-back" href="/m/select/">
-        <span aria-hidden="true" v-html="IC.arrowLeft"></span><span class="sr-only">返回功能选择</span>
+        <span aria-hidden="true" v-html="IC.arrowLeft"></span><span class="sr-only">{{ t("game-composer.backSelect") }}</span>
       </a>
     </div>
-    <p class="gcmp-sub">从左侧组件面板添加积木，编排成新的游戏模式，保存后可在组合舞台运行</p>
+    <p class="gcmp-sub">{{ t("game-composer.subtitle") }}</p>
   </header>
 
-  <div class="gcmp-toolbar" role="toolbar" aria-label="布局操作">
+  <div class="gcmp-toolbar" role="toolbar" :aria-label="t('game-composer.toolbar.aria')">
     <button class="gcmp-btn" type="button" @click="confirmNewLayout()">
-      <span aria-hidden="true" v-html="IC.plus"></span><span>新建布局</span>
+      <span aria-hidden="true" v-html="IC.plus"></span><span>{{ t("game-composer.toolbar.newLayout") }}</span>
     </button>
     <label class="gcmp-picker">
-      <span class="gcmp-picker-label">已保存布局</span>
-      <select id="gcmp-layout-select" class="gcmp-select" aria-label="选择要加载的已保存布局" @change="onPickLayout($event)">
-        <option value="">—— 新建（未保存） ——</option>
+      <span class="gcmp-picker-label">{{ t("game-composer.toolbar.savedLayouts") }}</span>
+      <select id="gcmp-layout-select" class="gcmp-select" :aria-label="t('game-composer.toolbar.selectAria')" @change="onPickLayout($event)">
+        <option value="">{{ t("game-composer.toolbar.newLayoutOption") }}</option>
         <option v-for="l in layouts" :key="l.id" :value="l.id">{{ l.name }} · {{ fmt(l.updatedAt) }}</option>
       </select>
     </label>
     <span class="gcmp-toolbar-sep" aria-hidden="true"></span>
     <button class="gcmp-btn gcmp-btn--primary" type="button" :disabled="saving" @click="save()">
-      <span aria-hidden="true" v-html="IC.floppy"></span><span>{{ saving ? '保存中…' : '保存' }}</span>
+      <span aria-hidden="true" v-html="IC.floppy"></span><span>{{ saving ? t("game-composer.toolbar.saving") : t("game-composer.toolbar.save") }}</span>
     </button>
     <button class="gcmp-btn gcmp-btn--danger" type="button" :disabled="!layoutId" :title="layoutId ? '删除当前布局' : '先保存才有可删除的布局'" @click="removeLayout()">
       <span aria-hidden="true" v-html="IC.trash"></span><span>删除</span>
     </button>
     <button class="gcmp-btn" type="button" :aria-pressed="previewing ? 'true' : 'false'" @click="togglePreview()">
-      <span aria-hidden="true" v-html="IC.eye"></span><span>{{ previewing ? '退出预览' : '预览' }}</span>
+      <span aria-hidden="true" v-html="IC.eye"></span><span>{{ previewing ? t("game-composer.toolbar.exitPreview") : t("game-composer.toolbar.preview") }}</span>
     </button>
     <a class="gcmp-btn gcmp-btn--link" :class="{ 'is-disabled': !layoutId }"
       :href="layoutId ? '/m/custom-stage/?layout=' + layoutId : '#'"
@@ -102,34 +103,34 @@ const TEMPLATE = `
 
   <div class="gcmp-banner gcmp-banner--err" role="alert" v-if="loadError">
     <span>{{ loadError }}</span>
-    <button class="gcmp-btn gcmp-btn--sm" type="button" @click="retryLoad()">重试</button>
+    <button class="gcmp-btn gcmp-btn--sm" type="button" @click="retryLoad()">{{ t("game-composer.retry") }}</button>
   </div>
 
   <div class="gcmp-main" v-if="!previewing">
-    <aside class="gcmp-panel gcmp-palette" aria-label="组件面板">
-      <h2 class="gcmp-panel-title">组件面板</h2>
-      <p class="gcmp-hint" v-if="!palette().length">暂无已注册组件（可能均被禁用）</p>
+    <aside class="gcmp-panel gcmp-palette" :aria-label="t('game-composer.palette.title')">
+      <h2 class="gcmp-panel-title">{{ t("game-composer.palette.title") }}</h2>
+      <p class="gcmp-hint" v-if="!palette().length">{{ t("game-composer.palette.empty") }}</p>
       <ul class="gcmp-palette-list">
         <li class="gcmp-palette-item" v-for="p in palette()" :key="p.name" :class="{ 'is-advanced': p.advanced }">
           <div class="gcmp-palette-info">
-            <span class="gcmp-palette-name">{{ p.label }}<code v-if="p.advanced" class="gcmp-tag">高级</code></span>
+            <span class="gcmp-palette-name">{{ p.label }}<code v-if="p.advanced" class="gcmp-tag">{{ t("game-composer.palette.advanced") }}</code></span>
             <code class="gcmp-palette-id">{{ p.name }}</code>
             <span class="gcmp-palette-desc">{{ p.desc }}</span>
           </div>
-          <button class="gcmp-icon-btn" type="button" :aria-label="'添加组件 ' + p.label" :title="'添加 ' + p.label" @click="addComponent(p.name)">
+          <button class="gcmp-icon-btn" type="button" :aria-label="t('game-composer.palette.addAria', { label: p.label })" :title="t('game-composer.palette.addTitle', { label: p.label })" @click="addComponent(p.name)">
             <span aria-hidden="true" v-html="IC.plus"></span>
           </button>
         </li>
       </ul>
     </aside>
 
-    <section class="gcmp-panel gcmp-canvas" aria-label="布局画布">
+    <section class="gcmp-panel gcmp-canvas" :aria-label="t('game-composer.canvas.title')">
       <div class="gcmp-canvas-head">
-        <h2 class="gcmp-panel-title">布局内容</h2>
+        <h2 class="gcmp-panel-title">{{ t("game-composer.canvas.title") }}</h2>
         <label class="gcmp-name-field">
-          <span class="gcmp-name-label">布局名称</span>
-          <input class="gcmp-input" type="text" maxlength="40" placeholder="例如：双人对战练习台"
-            :value="name" @input="onNameInput($event)" aria-label="布局名称（1 到 40 字符）" />
+          <span class="gcmp-name-label">{{ t("game-composer.canvas.nameLabel") }}</span>
+          <input class="gcmp-input" type="text" maxlength="40" :placeholder="t('game-composer.canvas.namePlaceholder')"
+            :value="name" @input="onNameInput($event)" :aria-label="t('game-composer.canvas.nameAria')" />
         </label>
       </div>
       <ol class="gcmp-items">
@@ -141,19 +142,19 @@ const TEMPLATE = `
             <div class="gcmp-item-line">
               <strong class="gcmp-item-name">{{ compLabel(it.component) }}</strong>
               <span class="gcmp-item-title" v-if="it.title">{{ it.title }}</span>
-              <span class="gcmp-item-title is-empty" v-else>未命名</span>
+              <span class="gcmp-item-title is-empty" v-else>{{ t("game-composer.canvas.unnamed") }}</span>
             </div>
             <code class="gcmp-item-props">{{ summary(it.props) }}</code>
           </div>
           <div class="gcmp-item-ops">
             <button class="gcmp-icon-btn" type="button" :disabled="i === 0"
-              :aria-label="'上移 ' + compLabel(it.component)" title="上移"
+              :aria-label="t('game-composer.canvas.moveUpAria', { label: compLabel(it.component) })" :title="t('game-composer.canvas.moveUpTitle')"
               @click.stop="moveItem(i, -1)"><span aria-hidden="true" v-html="IC.arrowUp"></span></button>
             <button class="gcmp-icon-btn" type="button" :disabled="i === items.length - 1"
-              :aria-label="'下移 ' + compLabel(it.component)" title="下移"
+              :aria-label="t('game-composer.canvas.moveDownAria', { label: compLabel(it.component) })" :title="t('game-composer.canvas.moveDownTitle')"
               @click.stop="moveItem(i, 1)"><span aria-hidden="true" v-html="IC.arrowDown"></span></button>
             <button class="gcmp-icon-btn gcmp-icon-btn--danger" type="button"
-              :aria-label="'删除 ' + compLabel(it.component)" title="删除"
+              :aria-label="t('game-composer.canvas.deleteAria', { label: compLabel(it.component) })" :title="t('game-composer.canvas.deleteTitle')"
               @click.stop="removeItem(it.id)"><span aria-hidden="true" v-html="IC.trash"></span></button>
           </div>
         </li>
@@ -164,8 +165,8 @@ const TEMPLATE = `
       </div>
     </section>
 
-    <aside class="gcmp-panel gcmp-props" aria-label="属性面板">
-      <h2 class="gcmp-panel-title">属性</h2>
+    <aside class="gcmp-panel gcmp-props" :aria-label="t('game-composer.props.title')">
+      <h2 class="gcmp-panel-title">{{ t("game-composer.props.title") }}</h2>
       <div class="gcmp-empty gcmp-empty--slim" v-if="!sel()">
         <p class="gcmp-empty-title">未选中组件</p>
         <p class="gcmp-empty-hint">点击画布中的卡片，在此编辑标题与 props</p>
@@ -176,73 +177,73 @@ const TEMPLATE = `
           <code>{{ selComponent() }}</code>
         </p>
         <label class="gcmp-field">
-          <span class="gcmp-field-label">标题（可选）</span>
-          <input class="gcmp-input" type="text" placeholder="卡片头标题，如：上半场"
-            :value="selTitle()" @input="onTitleInput($event)" aria-label="选中组件的标题" />
+          <span class="gcmp-field-label">{{ t("game-composer.props.cardTitleLabel") }}</span>
+          <input class="gcmp-input" type="text" :placeholder="t('game-composer.props.cardTitlePlaceholder')"
+            :value="selTitle()" @input="onTitleInput($event)" :aria-label="t('game-composer.props.cardTitleAria')" />
         </label>
         <label class="gcmp-field">
-          <span class="gcmp-field-label">props（JSON 对象）</span>
+          <span class="gcmp-field-label">{{ t("game-composer.props.propsLabel") }}</span>
           <textarea class="gcmp-textarea" rows="10" spellcheck="false"
             :class="{ 'is-error': propsError }"
             :value="propsDraft" @input="onPropsInput($event)" @change="applyProps()"
             :aria-invalid="propsError ? 'true' : 'false'"
-            aria-label="选中组件的 props JSON"></textarea>
+            :aria-label="t('game-composer.props.propsAria')"></textarea>
         </label>
         <p class="gcmp-props-error" role="alert" v-if="propsError">{{ propsError }}</p>
         <div class="gcmp-props-actions">
-          <button class="gcmp-btn gcmp-btn--sm gcmp-btn--primary" type="button" @click="applyProps()">应用 props</button>
+          <button class="gcmp-btn gcmp-btn--sm gcmp-btn--primary" type="button" @click="applyProps()">{{ t("game-composer.props.applyProps") }}</button>
         </div>
-        <p class="gcmp-hint">失焦或点「应用」时解析 JSON；解析失败会提示错误并保持旧值</p>
+        <p class="gcmp-hint">{{ t("game-composer.props.applyHint") }}</p>
       </div>
 
-      <section class="gcmp-wiring" aria-label="组件连线">
-        <h3 class="gcmp-wiring-title"><span aria-hidden="true" v-html="IC.bolt"></span>连线</h3>
+      <section class="gcmp-wiring" :aria-label="t('game-composer.wiring.title')">
+        <h3 class="gcmp-wiring-title"><span aria-hidden="true" v-html="IC.bolt"></span>{{ t("game-composer.wiring.title") }}</h3>
         <ul class="gcmp-wiring-list" v-if="connections.length">
           <li class="gcmp-wiring-item" v-for="(c, i) in connections" :key="i">
-            <span class="gcmp-wiring-badge" :class="isEventConn(c) ? 'is-event' : 'is-data'">{{ isEventConn(c) ? '事件' : '数据' }}</span>
+            <span class="gcmp-wiring-badge" :class="isEventConn(c) ? 'is-event' : 'is-data'">{{ isEventConn(c) ? t("game-composer.wiring.event") : t("game-composer.wiring.data") }}</span>
             <span class="gcmp-wiring-text">
               <strong>{{ connItemLabel(c.from) }}</strong><span class="gcmp-wiring-mid"> · {{ connOutLabel(c) }}</span>
               <span class="gcmp-wiring-arrow" aria-hidden="true" v-html="IC.arrowRight"></span>
               <strong>{{ connItemLabel(c.to) }}</strong><span class="gcmp-wiring-mid"> · {{ connInLabel(c) }}</span>
             </span>
             <button class="gcmp-icon-btn gcmp-icon-btn--danger gcmp-icon-btn--sm" type="button"
-              :aria-label="'删除连线：' + connItemLabel(c.from) + ' 到 ' + connItemLabel(c.to)" title="删除连线"
+              :aria-label="t('game-composer.wiring.deleteAria', { from: connItemLabel(c.from), to: connItemLabel(c.to) })" :title="t('game-composer.wiring.deleteTitle')"
               @click.stop="removeConnection(i)"><span aria-hidden="true" v-html="IC.trash"></span></button>
           </li>
         </ul>
-        <p class="gcmp-hint" v-else>暂无连线：用下方表单把一个实例的输出口接到另一实例的输入口</p>
+        <p class="gcmp-hint" v-else>{{ t("game-composer.wiring.empty") }}</p>
 
         <div class="gcmp-wiring-form" v-if="stagedList().length">
           <div class="gcmp-wiring-grid">
             <label class="gcmp-field">
-              <span class="gcmp-field-label">来源实例</span>
+              <span class="gcmp-field-label">{{ t("game-composer.wiring.fromLabel") }}</span>
               <select id="gcmp-conn-from" class="gcmp-select" :value="connFrom" @change="onConnFrom($event)"
-                aria-label="连线来源实例">
-                <option value="">—— 实例 ——</option>
+                :aria-label="t('game-composer.wiring.fromAria')">
+                <option value="">{{ t("game-composer.wiring.fromOption") }}</option>
                 <option v-for="s in stagedList()" :key="s.id" :value="s.id">{{ s.label }}</option>
               </select>
             </label>
             <label class="gcmp-field">
-              <span class="gcmp-field-label">输出口（on 开头 = 事件）</span>
+              <span class="gcmp-field-label">{{ t("game-composer.wiring.outLabel") }}</span>
               <select id="gcmp-conn-out" class="gcmp-select" :value="connOut" @change="onConnOut($event)"
-                :disabled="!connOuts().length" aria-label="连线输出口">
-                <option value="">—— 输出口 ——</option>
+                :disabled="!connOuts().length" :aria-label="t('game-composer.wiring.outAria')">
+                <option value="">{{ t("game-composer.wiring.outOption") }}</option>
                 <option v-for="o in connOuts()" :key="o.name" :value="o.name">{{ o.label }}</option>
               </select>
             </label>
             <label class="gcmp-field">
-              <span class="gcmp-field-label">目标实例</span>
+              <span class="gcmp-field-label">{{ t("game-composer.wiring.toLabel") }}</span>
               <select id="gcmp-conn-to" class="gcmp-select" :value="connTo" @change="onConnTo($event)"
-                aria-label="连线目标实例">
+                :aria-label="t('game-composer.wiring.toAria')">
                 <option value="">—— 实例 ——</option>
                 <option v-for="s in stagedList()" :key="'t-' + s.id" :value="s.id">{{ s.label }}</option>
               </select>
             </label>
             <label class="gcmp-field">
-              <span class="gcmp-field-label">输入口</span>
+              <span class="gcmp-field-label">{{ t("game-composer.wiring.inLabel") }}</span>
               <select id="gcmp-conn-in" class="gcmp-select" :value="connIn" @change="onConnIn($event)"
-                :disabled="!connIns().length" aria-label="连线输入口">
-                <option value="">—— 输入口 ——</option>
+                :disabled="!connIns().length" :aria-label="t('game-composer.wiring.inAria')">
+                <option value="">{{ t("game-composer.wiring.inOption") }}</option>
                 <option v-for="o in connIns()" :key="o.name" :value="o.name">{{ o.label }}</option>
               </select>
             </label>
@@ -255,24 +256,24 @@ const TEMPLATE = `
               <span aria-hidden="true" v-html="IC.plus"></span><span>添加连线</span>
             </button>
           </div>
-          <p class="gcmp-hint">输出口 on 开头 = 事件连线（触发目标动作）；否则 = 数据连线（目标惰性取来源数据）</p>
+          <p class="gcmp-hint">{{ t("game-composer.wiring.hint") }}</p>
         </div>
-        <p class="gcmp-hint" v-else>画布暂无可连线的实例（缺 id 的实例不参与装配与连线）</p>
+        <p class="gcmp-hint" v-else>{{ t("game-composer.wiring.noStaged") }}</p>
       </section>
     </aside>
   </div>
 
   <section class="gcmp-preview" v-if="previewing" aria-label="布局预览">
     <div class="gcmp-preview-bar">
-      <span class="gcmp-preview-note">预览模式：组件真实挂载，状态仅内存、不落盘</span>
+      <span class="gcmp-preview-note">{{ t("game-composer.preview.note") }}</span>
       <span class="gcmp-preview-conn" v-if="connections.length">{{ previewConnText() }}</span>
-      <button class="gcmp-btn" type="button" @click="togglePreview()">退出预览</button>
+      <button class="gcmp-btn" type="button" @click="togglePreview()">{{ t("game-composer.toolbar.exitPreview") }}</button>
     </div>
-    <div class="gcmp-preview-stage"><p class="gcmp-hint">正在挂载组件…</p></div>
+    <div class="gcmp-preview-stage"><p class="gcmp-hint">{{ t("game-composer.preview.mounting") }}</p></div>
   </section>
 
   <footer class="gcmp-foot">
-    <span>布局存于本站数据库；「在组合舞台打开」以当前布局 id 运行（/m/custom-stage/）</span>
+    <span>{{ t("game-composer.footer") }}</span>
   </footer>
 </section>
 `;
@@ -385,7 +386,7 @@ export function createComposerView(el, ctx) {
       state.ready = true;
     } catch (e) {
       if (stopped || !state) return;
-      state.loadError = `布局列表加载失败：${e && e.message ? e.message : "网络错误"}`;
+      state.loadError = t("game-composer.status.loadFailed", { error: e && e.message ? e.message : t("game-composer.status.networkError") });
       state.ready = true;
     }
     syncPicker();
@@ -446,7 +447,7 @@ export function createComposerView(el, ctx) {
       proceed();
       return;
     }
-    askConfirm("当前布局有未保存的修改，继续将丢弃这些修改，是否继续？", proceed);
+    askConfirm(t("game-composer.status.unsavedConfirm"), proceed);
   }
 
   /** 工具条「新建布局」入口（dirty 确认后才清空；删除成功后的 newLayout 重置仍走直调） */
@@ -464,7 +465,7 @@ export function createComposerView(el, ctx) {
     if (id === state.layoutId) return;
     guardSwitch(() => {
       if (!loadLayoutById(id)) {
-        toast("未找到该布局（列表可能已变化）", "warning");
+        toast(t("game-composer.status.notFound"), "warning");
       }
       syncPicker();
     });
@@ -494,7 +495,7 @@ export function createComposerView(el, ctx) {
   async function save() {
     if (state.saving) return;
     if (!state.name.trim()) {
-      toast("布局名称不能为空", "warning");
+      toast(t("game-composer.status.nameEmpty"), "warning");
       return;
     }
     const body = { name: state.name, items: plainItems(), connections: plainConnections() };
@@ -517,10 +518,10 @@ export function createComposerView(el, ctx) {
       if (!res.ok) {
         if (res.status === 404) {
           // 布局已被他端删除：PUT 会一直 404——明确引导另存，不改状态机、不自动转新建
-          toast("该布局已被删除（可能在其他页面操作），请点「新建布局」另存", "error");
+          toast(t("game-composer.status.deletedElsewhere"), "error");
           return;
         }
-        toast((data && data.error) || `保存失败（HTTP ${res.status}）`, "error");
+        toast((data && data.error) || t("game-composer.status.saveFailedHttp", { status: res.status }), "error");
         return;
       }
       const layout = data.layout || data;
@@ -532,14 +533,14 @@ export function createComposerView(el, ctx) {
           state.layoutId = layout.id;
           state.dirty = true;
         }
-        toast("已保存，但保存期间有新的修改未入盘，请再次保存", "warning");
+        toast(t("game-composer.status.saveConflict"), "warning");
       } else {
         applyServerLayout(layout);
-        toast("已保存", "success");
+        toast(t("game-composer.status.saved"), "success");
       }
       await refresh();
     } catch (e) {
-      if (!stopped && state) toast(`网络错误，保存失败：${e && e.message ? e.message : e}`, "error");
+      if (!stopped && state) toast(t("game-composer.status.saveNetworkError", { error: e && e.message ? e.message : e }), "error");
     } finally {
       if (!stopped && state) state.saving = false;
     }
@@ -555,30 +556,30 @@ export function createComposerView(el, ctx) {
         const res = await fetch(`${API_BASE}/${encodeURIComponent(targetId)}`, { method: "DELETE" });
         if (stopped || !state) return;
         if (res.status === 404) {
-          toast("布局不存在（可能已被删除）", "warning");
+          toast(t("game-composer.status.deleteNotFound"), "warning");
           await refresh();
           if (state.layoutId === targetId) newLayout();
           return;
         }
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          toast((data && data.error) || `删除失败（HTTP ${res.status}）`, "error");
+          toast((data && data.error) || t("game-composer.status.deleteFailedHttp", { status: res.status }), "error");
           return;
         }
-        toast("已删除", "success");
+        toast(t("game-composer.status.deleted"), "success");
         await refresh();
         if (state.layoutId === targetId) newLayout();
       } catch (e) {
-        if (!stopped && state) toast(`网络错误，删除失败：${e && e.message ? e.message : e}`, "error");
+        if (!stopped && state) toast(t("game-composer.status.deleteNetworkError", { error: e && e.message ? e.message : e }), "error");
       }
     };
-    askConfirm(`删除布局「${targetName}」？此操作不可恢复。`, doDelete);
+    askConfirm(t("game-composer.status.deleteConfirm", { name: targetName }), doDelete);
   }
 
   function openStage(event) {
     if (!state.layoutId) {
       event.preventDefault();
-      toast("请先保存布局，才能在组合舞台打开", "warning");
+      toast(t("game-composer.status.openStageNeedSave"), "warning");
     }
   }
 
@@ -683,11 +684,11 @@ export function createComposerView(el, ctx) {
     try {
       parsed = JSON.parse(state.propsDraft);
     } catch (e) {
-      state.propsError = `JSON 解析失败：${e.message}`;
+      state.propsError = t("game-composer.status.jsonParseError", { error: e.message });
       return;
     }
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      state.propsError = "props 必须为 JSON 对象（{}），不能是数组或原始值";
+      state.propsError = t("game-composer.status.propsMustBeObject");
       return;
     }
     state.propsError = "";
@@ -709,7 +710,7 @@ export function createComposerView(el, ctx) {
   /** 实例显示标签：标题（组件中文名）；实例已删除时透明展示 id（连线不级联删，运行时 warn 跳过） */
   function connItemLabel(id) {
     const it = state.items.find((x) => x.id === id);
-    if (!it) return `${id}（实例已删除）`;
+    if (!it) return `${id}（${t("game-composer.wiring.itemDeleted")}）`;
     return it.title ? `${it.title}（${componentLabel(it.component)}）` : componentLabel(it.component);
   }
 
@@ -736,29 +737,31 @@ export function createComposerView(el, ctx) {
    *  未命中（未知组件/手改 JSON）兜底原名 */
   function connOutLabel(c) {
     const comp = itemComponent(c.from);
-    if (!comp) return `${String(c.out)}（原始输出口）`;
+    if (!comp) return `${String(c.out)}（${t("game-composer.wiring.rawOut")}）`;
     const entry = vocabOf(comp, "outs").find((e) => e.name === c.out);
-    return entry ? entry.label : String(c.out);
+    return entry ? t(`game-composer.palette.components.${comp}.outs.${c.out}`, entry.label) : String(c.out);
   }
 
   /** in 显示标签（同 connOutLabel，悬挂标「原始输入口」） */
   function connInLabel(c) {
     const comp = itemComponent(c.to);
-    if (!comp) return `${String(c.in)}（原始输入口）`;
+    if (!comp) return `${String(c.in)}（${t("game-composer.wiring.rawIn")}）`;
     const entry = vocabOf(comp, "ins").find((e) => e.name === c.in);
-    return entry ? entry.label : String(c.in);
+    return entry ? t(`game-composer.palette.components.${comp}.ins.${c.in}`, entry.label) : String(c.in);
   }
 
   /** 表单联动：当前来源实例的组件 outs 词汇 */
   function connOuts() {
     if (!state) return [];
-    return vocabOf(itemComponent(state.connFrom), "outs");
+    const comp = itemComponent(state.connFrom);
+    return vocabOf(comp, "outs").map((e) => ({ ...e, label: t(`game-composer.palette.components.${comp}.outs.${e.name}`, e.label) }));
   }
 
   /** 表单联动：当前目标实例的组件 ins 词汇 */
   function connIns() {
     if (!state) return [];
-    return vocabOf(itemComponent(state.connTo), "ins");
+    const comp = itemComponent(state.connTo);
+    return vocabOf(comp, "ins").map((e) => ({ ...e, label: t(`game-composer.palette.components.${comp}.ins.${e.name}`, e.label) }));
   }
 
   function onConnFrom(event) {
@@ -803,8 +806,8 @@ export function createComposerView(el, ctx) {
     const dup = state.connections.find((c) => connTargetKey(c) === connTargetKey(draft));
     if (dup) {
       state.connError = isEventConn(draft)
-        ? "该事件源已被另一条连线占用（同 来源实例 + 输出口），请先删除原连线"
-        : "该数据目标已被另一条连线占用（同 目标实例 + 输入口），请先删除原连线";
+        ? t("game-composer.status.eventSourceOccupied")
+        : t("game-composer.status.dataTargetOccupied");
       return;
     }
     state.connections.push(draft); // id 缺省，保存时由后端补 "cn-xxxxxx"
@@ -842,7 +845,7 @@ export function createComposerView(el, ctx) {
     if (!plain.length) {
       const hint = document.createElement("p");
       hint.className = "gcmp-hint";
-      hint.textContent = "画布为空：退出预览后从左侧组件面板添加组件";
+      hint.textContent = t("game-composer.preview.emptyHint");
       stage.append(hint);
       return;
     }
@@ -850,7 +853,7 @@ export function createComposerView(el, ctx) {
       const slot = document.createElement("div");
       slot.className = "stage-slot";
       slot.dataset.slot = item.id;
-      slot.setAttribute("aria-label", `组件插槽：${componentLabel(item.component)}`);
+      slot.setAttribute("aria-label", t("game-composer.preview.slotAria", { label: componentLabel(item.component) }));
       stage.append(slot);
     }
     // 连线注入（P15 §3）：apis 以 item.id 为键，onReady 在挂载过程同步回填；
@@ -871,7 +874,7 @@ export function createComposerView(el, ctx) {
       const err = document.createElement("p");
       err.className = "gcmp-props-error";
       err.setAttribute("role", "alert");
-      err.textContent = `组件挂载失败：${e && e.message ? e.message : e}`;
+      err.textContent = t("game-composer.preview.mountFailed", { error: e && e.message ? e.message : e });
       stage.append(err);
     }
   }
@@ -1036,7 +1039,7 @@ export function createComposerView(el, ctx) {
       if (stopped) return; // 晚到守卫：卸载后不得覆写 el 的新内容（与 .then 同口径）
       console.error("[game-composer] 响应式视图初始化失败:", e);
       el.innerHTML =
-        '<section class="gcmp-page"><p class="gcmp-props-error" role="alert">编辑器初始化失败，请刷新重试</p></section>';
+        `<section class="gcmp-page"><p class="gcmp-props-error" role="alert">${t("game-composer.status.initFailed")}</p></section>`;
     });
 
   // 未保存离开提示（可选加分项：仅 dirty 时）

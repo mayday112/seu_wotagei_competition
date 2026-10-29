@@ -17,6 +17,8 @@
 // DOM元素缓存（原 music_core.js）
 import { icon } from "/web/icons.mjs";
 import { createTimerRegistry } from "/web/lib/timers.mjs";
+import { registerLocales } from "./locales/index.mjs";
+import { t } from "/web/lib/i18n.mjs";
 
 const DOM = {};
 
@@ -84,8 +86,9 @@ const AppState = {
 
 export default {
   name: "music-import-front",
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({ key: "music-import", component: musicImportComponent });
   },
 };
@@ -162,20 +165,14 @@ async function checkUploaderStatus() {
     const data = await response.json();
 
     if (!data.success || !data.uploaderReady) {
-      showStatusMessage(
-        `上传组件未就绪: ${
-          data.error || "可能缺少multer模块"
-        }。请联系管理员安装multer。`,
-        "error",
-        10000
-      );
+      showStatusMessage(t("music-import.status.uploaderNotReady", { error: data.error || "multer" }), "error", 10000);
       console.error("上传组件未就绪:", data);
     } else {
       console.log("上传组件已就绪, 版本:", data.version);
     }
   } catch (error) {
     console.error("检查上传组件状态失败:", error);
-    showStatusMessage("无法连接到服务器，上传功能可能不可用", "warning", 5000);
+    showStatusMessage(t("music-import.status.cannotConnect"), "warning", 5000);
   }
 }
 
@@ -321,7 +318,7 @@ function changeGroup(group) {
 function updateGroupInfo() {
   const groupInfo = AppState.groups[AppState.currentGroup];
 
-  DOM.currentGroupName.textContent = groupInfo.name;
+  DOM.currentGroupName.textContent = t("music-import.groups." + AppState.currentGroup, groupInfo.name);
   DOM.currentFolder.textContent = groupInfo.folder;
   DOM.currentJson.textContent = groupInfo.jsonFile;
   DOM.currentCount.textContent = groupInfo.count;
@@ -339,7 +336,7 @@ async function loadGroupMusicCounts() {
     updateGroupInfo();
   } catch (error) {
     console.error("加载音乐数量失败:", error);
-    showStatusMessage("加载音乐数量失败: " + error.message, "error");
+    showStatusMessage(t("music-import.status.loadCountFailed", { error: error.message }), "error");
   }
 }
 
@@ -366,12 +363,12 @@ async function loadMusicFiles(forceRefresh = false) {
       console.log(`成功加载 ${AppState.musicFiles.length} 个音乐文件`);
     } else {
       console.error("加载音乐文件列表失败:", result.error);
-      showStatusMessage(`加载音乐文件列表失败: ${result.error}`, "error");
+      showStatusMessage(t("music-import.status.loadFilesFailed", { error: result.error }), "error");
     }
   } catch (error) {
     if (requestedGroup !== AppState.currentGroup) return;
     console.error("加载音乐文件列表异常:", error);
-    showStatusMessage(`加载音乐文件列表异常: ${error.message}`, "error");
+    showStatusMessage(t("music-import.status.loadFilesFailed", { error: error.message }), "error");
   } finally {
     AppState.loadingMusicFiles = false;
     // 仅本组请求落地时刷新列表；过期请求静默丢弃（切组后的 force 请求负责渲染）
@@ -460,7 +457,7 @@ function updateFileList() {
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-file-btn";
     deleteBtn.innerHTML = "×";
-    deleteBtn.title = "移除文件";
+    deleteBtn.title = t("music-import.table.remove");
     deleteBtn.addEventListener("click", () => removeFile(index));
 
     // 组装列表项
@@ -564,7 +561,7 @@ function updateMusicFilesList() {
   if (AppState.loadingMusicFiles) {
     container.innerHTML = `
       <tr class="loading-row">
-        <td colspan="3">加载音乐文件列表中...</td>
+        <td colspan="3" data-i18n="music-import.table.loading">${t("music-import.table.loading")}</td>
       </tr>
     `;
     return;
@@ -573,7 +570,7 @@ function updateMusicFilesList() {
   if (AppState.musicFiles.length === 0) {
     container.innerHTML = `
       <tr class="empty-row">
-        <td colspan="3">当前组别没有音乐文件</td>
+        <td colspan="3" data-i18n="music-import.table.empty">${t("music-import.table.empty")}</td>
       </tr>
     `;
     return;
@@ -599,7 +596,7 @@ function updateMusicFilesList() {
     const btn = document.createElement("button");
     btn.className = "move-to-recycle-btn";
     btn.type = "button";
-    btn.textContent = "移到回收文件夹";
+    btn.textContent = t("music-import.table.moveToRecycle");
     tdAction.appendChild(btn);
 
     tr.append(tdIndex, tdName, tdAction);
@@ -611,22 +608,22 @@ function updateMusicFilesList() {
 // 移动文件到回收文件夹
 async function moveFileToRecycle(filename) {
   if (AppState.uploading) {
-    showStatusMessage("上传过程中不能移动文件", "warning");
+    showStatusMessage(t("music-import.status.cannotMoveDuringUpload"), "warning");
     return;
   }
 
   // 使用自定义确认对话框而不是浏览器原生confirm
   showConfirmDialog(
-    `确定要将文件 "${filename}" 移动到回收文件夹吗？`,
+    t("music-import.status.confirmMoveToRecycle", { filename }),
     async () => {
       // 用户确认后的操作
-      showStatusMessage("正在移动文件...", "info");
+      showStatusMessage(t("music-import.status.movingFile"), "info");
 
       try {
         const result = await moveToRecycle(AppState.currentGroup, filename);
 
         if (result.success) {
-          showStatusMessage(`文件 "${filename}" 已移动到回收文件夹`, "success");
+          showStatusMessage(t("music-import.status.moveSuccess", { filename }), "success");
 
           // 从当前列表中移除
           AppState.musicFiles = AppState.musicFiles.filter(
@@ -644,10 +641,10 @@ async function moveFileToRecycle(filename) {
             loadGroupMusicCounts();
           }
         } else {
-          showStatusMessage(`移动文件失败: ${result.error}`, "error");
+          showStatusMessage(t("music-import.status.moveFailed", { error: result.error }), "error");
         }
       } catch (error) {
-        showStatusMessage(`移动文件异常: ${error.message}`, "error");
+        showStatusMessage(t("music-import.status.moveFailed", { error: error.message }), "error");
       }
     }
   );
@@ -719,9 +716,7 @@ function processFiles(files) {
 
   // 显示无效文件警告
   if (invalidFiles.length > 0) {
-    const message = `以下${
-      invalidFiles.length
-    }个文件不是有效的音频文件: ${invalidFiles.join(", ")}`;
+    const message = t("music-import.status.invalidFiles", { count: invalidFiles.length, files: invalidFiles.join(", ") });
     showStatusMessage(message, "warning", 5000);
   }
 }
@@ -786,7 +781,7 @@ async function startUpload() {
 
     // 显示上传中消息
     showStatusMessage(
-      `开始上传文件到 ${AppState.groups[targetGroup].name}...`,
+      t("music-import.status.startUploadMsg", { group: t("music-import.groups." + targetGroup, AppState.groups[targetGroup].name) }),
       "info"
     );
 
@@ -816,13 +811,13 @@ async function startUpload() {
     if (existingFiles.length > 0) {
       const fileNames = existingFiles.join(", ");
       const confirmUpload = confirm(
-        `以下文件已存在，确定要覆盖吗？\n${fileNames}`
+        t("music-import.status.confirmOverwrite", { files: fileNames })
       );
 
       if (!confirmUpload) {
         AppState.uploading = false;
         updateUploadButtons();
-        showStatusMessage("上传已取消", "info");
+        showStatusMessage(t("music-import.status.uploadCancelled"), "info");
         return;
       }
     }
@@ -863,7 +858,7 @@ async function startUpload() {
 
     // 显示成功消息
     showStatusMessage(
-      `成功上传 ${AppState.selectedFiles.length} 个文件`,
+      t("music-import.status.uploadSuccess", { count: AppState.selectedFiles.length }),
       "success"
     );
 
@@ -875,17 +870,16 @@ async function startUpload() {
 
     // 提供更友好的错误信息
     if (errorMsg.includes("缺少group参数")) {
-      errorMsg = "无法识别目标组别，请重新选择组别后再试";
+      errorMsg = t("music-import.status.missingGroupParam");
     } else if (errorMsg.includes("400 Bad Request")) {
       errorMsg =
         "请求格式错误: " +
         (errorMsg.split("400 Bad Request")[1] || "请检查上传文件格式和大小");
     } else if (errorMsg.includes("500 Internal Server Error")) {
-      errorMsg =
-        "服务器错误：上传组件可能未正确安装。请联系管理员安装multer模块。";
+      errorMsg = t("music-import.status.serverError500");
     }
 
-    showStatusMessage("上传失败: " + errorMsg, "error");
+    showStatusMessage(t("music-import.status.uploadFailed", { error: errorMsg }), "error");
     showUploadResult(false);
   } finally {
     // 重置上传状态

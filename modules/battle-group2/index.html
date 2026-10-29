@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>try{if(localStorage.getItem("ystage:theme")==="neon"){var h=document.documentElement;h.classList.add("theme-neon");var p=location.pathname.split("/");h.setAttribute("data-page",(p[1]==="m"&&p[2])?p[2].toLowerCase():"home");var a=function(i,u){if(!document.getElementById(i)){var s=document.createElement("link");s.id=i;s.rel="stylesheet";s.href=u;document.head.appendChild(s)}};a("theme-neon-css","/m/component-theme-neon/theme.css");a("theme-neon-layout-css","/m/component-theme-neon/neon-layout.css")}}catch(e){}</script>
-    <title>Rookies比赛界面</title>
+    <title data-i18n="battle-group2.rookiesTitle">Rookies比赛界面</title>
     <link rel="preload" as="image" href="/resource/images/bg.jpg" />
     <!-- P11：布局原语（L1 共享资产，origin 相对绝对路径）——先于 style.css，页面样式可覆盖 -->
     <link rel="stylesheet" href="/web/components/grid.css" />
@@ -13,31 +13,31 @@
   <body>
     <header>
       <div class="header-buttons">
-        <button id="homeButton" data-i18n="drag.home">返回主页</button>
+        <button id="homeButton" data-i18n="common.home">返回主页</button>
       </div>
-      <h1 data-i18n="battleGroup.rookiesTitle">一年内组比赛界面</h1>
+      <h1 data-i18n="battle-group2.rookiesTitle">一年内组比赛界面</h1>
       <button id="clearCacheButton" class="clear-cache-btn" data-i18n="common.reset">清除缓存</button>
     </header>
     <main>
       <section id="playerSection">
-        <h2 class="small-text" data-i18n="tournament.drawPlayers">选手列表</h2>
+        <h2 class="small-text" data-i18n="battle-group2.playerList">选手列表</h2>
         <!-- 布局：.grid-cards + 页面 CSS 覆盖为 auto-fit 140px + justify-content:center
              （列表项是短标签，固定轨道宽以保持迁移前的条目尺寸） -->
         <ul id="playerList" class="grid-cards"></ul>
-        <h3 id="currentPlayer" class="large-text">打师名</h3>
-        <h3 id="currentTrick" class="large-text">抽取技名</h3>
-        <h3 id="currentMusic" class="large-text">抽取音乐</h3>
+        <h3 id="currentPlayer" class="large-text" data-i18n="battle-group2.playerPlaceholder">打师名</h3>
+        <h3 id="currentTrick" class="large-text" data-i18n="battle-group2.trickPlaceholder">抽取技名</h3>
+        <h3 id="currentMusic" class="large-text" data-i18n="battle-group2.musicPlaceholder">抽取音乐</h3>
       </section>
       <section id="trickSection">
-        <h2 class="small-text" data-i18n="tournament.drawnTricks">技名列表</h2>
+        <h2 class="small-text" data-i18n="battle-group2.trickList">技名列表</h2>
         <ul id="trickList" class="grid-cards"></ul>
       </section>
       <div id="buttons">
-        <button id="shuffleButton" data-i18n="drag.shuffle">随机排序</button>
+        <button id="shuffleButton" data-i18n="common.shuffle">随机排序</button>
         <button id="drawTrickButton" data-i18n="tournament.drawTricks">抽取动作</button>
         <button id="drawMusicButton" data-i18n="tournament.drawMusic">抽取音乐</button>
         <button id="playMusicButton" data-i18n="tournament.playMusic">播放音乐</button>
-        <button id="nextPlayerButton" data-i18n="tournament.nextRound">下一位</button>
+        <button id="nextPlayerButton" data-i18n="battle-group2.nextPlayer">下一位</button>
       </div>
     </main>
 

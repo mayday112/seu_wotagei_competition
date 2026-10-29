@@ -16,11 +16,13 @@
  * （P11 §3 问 6 的 L2 准入条款）。
  */
 import { createCountdown } from "./view.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "component-countdown",
-  inject: ["ui"],
+  inject: ["ui", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     // 内核组件注册表未就绪时优雅降级：不注册、不抛错（页面侧 component() 返回 null）
     if (typeof ctx.ui.registerComponent !== "function") {
       console.error("[component-countdown] ctx.ui.registerComponent 不可用（内核未升级），组件未注册");

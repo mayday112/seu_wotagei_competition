@@ -266,7 +266,8 @@ export function createMusicPlayer(hostEl, props = {}, ctx) {
     const hint = createNode("div", "click-to-stop cmp-music__hint"); // 与 root 平级：root 隐藏后提示仍在
     if (ov.hintId) hint.id = ov.hintId;
     const defaultHint = ov.hintText || "双击任意位置停止";
-    hint.textContent = ctx && ctx.i18n ? ctx.i18n.t("tournament.stopHint", defaultHint) : defaultHint;
+    const hintKey = p.exitOnClick ? "tournament.clickStopHint" : "tournament.stopHint";
+    hint.textContent = ctx && ctx.i18n ? ctx.i18n.t(hintKey, defaultHint) : defaultHint;
     setHidden(root, true);
     setHidden(hint, true);
     return { root, text, hint };

@@ -719,17 +719,17 @@ function showResultScreen() {
 
   resultScreen.innerHTML = `
     <div class="result-content">
-      <h2>游戏结束!</h2>
-      <p class="time-result">用时: <span>${formatTime(
+      <h2>${t("movement-teaching.gameOverExclamation", "游戏结束!")}</h2>
+      <p class="time-result">${t("movement-teaching.timeUsed", "用时: ")}<span>${formatTime(
         GameState.elapsedSeconds
       )}</span></p>
       <div class="result-actions">
-        <button id="reset-game-btn" class="primary-btn">重新开始</button>
-        <button id="back-to-menu-btn" class="secondary-btn">返回菜单</button>
+        <button id="reset-game-btn" class="primary-btn">${t("movement-teaching.restart", "重新开始")}</button>
+        <button id="back-to-menu-btn" class="secondary-btn">${t("movement-teaching.backToMenu", "返回菜单")}</button>
       </div>
       <div class="result-buttons">
-        <button id="reveal-trick-btn" class="action-btn">揭示技能</button>
-        <button id="save-result-btn" class="action-btn primary">保存记录</button>
+        <button id="reveal-trick-btn" class="action-btn">${t("movement-teaching.revealTrick", "揭示技能")}</button>
+        <button id="save-result-btn" class="action-btn primary">${t("movement-teaching.saveRecord", "保存记录")}</button>
       </div>
     </div>
   `;
@@ -848,25 +848,25 @@ function showRecordForm() {
   recordForm.id = "record-form";
 
   recordForm.innerHTML = `
-    <h3>游戏结果记录</h3>
+    <h3>${t("movement-teaching.gameResultRecord", "游戏结果记录")}</h3>
     <div class="form-group">
-      <label for="team-name">队伍名称:</label>
-      <input type="text" id="team-name" placeholder="请输入队伍名称">
+      <label for="team-name">${t("movement-teaching.teamName", "队伍名称:")}</label>
+      <input type="text" id="team-name" placeholder="${t("movement-teaching.teamNamePlaceholder", "请输入队伍名称")}">
     </div>
     <div class="form-group">
-      <label>猜测结果:</label>
+      <label>${t("movement-teaching.guessResult", "猜测结果:")}</label>
       <div class="radio-group">
         <label>
-          <input type="radio" name="guess-result" value="correct" checked> 猜中
+          <input type="radio" name="guess-result" value="correct" checked> ${t("movement-teaching.guessed", "猜中")}
         </label>
         <label>
-          <input type="radio" name="guess-result" value="incorrect"> 未猜中
+          <input type="radio" name="guess-result" value="incorrect"> ${t("movement-teaching.notGuessed", "未猜中")}
         </label>
       </div>
     </div>
     <div class="form-actions">
-      <button id="save-record-btn" class="primary-btn">保存记录</button>
-      <button id="cancel-record-btn" class="secondary-btn">取消</button>
+      <button id="save-record-btn" class="primary-btn">${t("movement-teaching.saveRecord", "保存记录")}</button>
+      <button id="cancel-record-btn" class="secondary-btn">${t("movement-teaching.cancel", "取消")}</button>
     </div>
   `;
 
@@ -928,7 +928,7 @@ async function saveGameRecord() {
 
   // 禁用保存按钮，避免重复提交
   saveButton.disabled = true;
-  saveButton.textContent = "保存中...";
+  saveButton.textContent = t("movement-teaching.saving", "保存中...");
 
   // 获取表单数据
   RecordState.teamName = teamNameInput.value.trim();
@@ -989,7 +989,7 @@ async function saveGameRecord() {
     // 创建并显示成功消息
     const feedbackMsg = document.createElement("div");
     feedbackMsg.className = "record-feedback success";
-    feedbackMsg.innerHTML = `<span class="icon">${icon("check", { size: 16 })}</span> 游戏记录已保存成功`;
+    feedbackMsg.innerHTML = `<span class="icon">${icon("check", { size: 16 })}</span> ${escapeHtml(t("movement-teaching.recordSavedSuccess", "游戏记录已保存成功"))}`;
 
     // 在表单内显示反馈消息
     const formActions = document.querySelector(".form-actions");
@@ -1004,7 +1004,7 @@ async function saveGameRecord() {
 
     // 修改保存按钮状态
     saveButton.disabled = false;
-    saveButton.innerHTML = `已保存 ${icon("check", { size: 16 })}`;
+    saveButton.innerHTML = `${escapeHtml(t("movement-teaching.saved", "已保存"))} ${icon("check", { size: 16 })}`;
     saveButton.classList.add("save-success");
 
     // 3秒后关闭表单
@@ -1020,7 +1020,7 @@ async function saveGameRecord() {
     // 创建并显示错误消息
     const feedbackMsg = document.createElement("div");
     feedbackMsg.className = "record-feedback error";
-    feedbackMsg.innerHTML = `<span class="icon">${icon("x", { size: 16 })}</span> 保存失败: ${escapeHtml(error.message)}`;
+    feedbackMsg.innerHTML = `<span class="icon">${icon("x", { size: 16 })}</span> ${escapeHtml(t("movement-teaching.saveFailedWithReason", "保存失败: " + error.message, { reason: error.message }))}`;
 
     // 在表单内显示反馈消息
     const formActions = document.querySelector(".form-actions");
@@ -1035,13 +1035,13 @@ async function saveGameRecord() {
 
     // 重新启用按钮
     saveButton.disabled = false;
-    saveButton.textContent = "重试保存";
+    saveButton.textContent = t("movement-teaching.retrySave", "重试保存");
     saveButton.classList.add("save-error");
 
     // 5秒后恢复按钮正常状态
     setTimeout(() => {
       saveButton.classList.remove("save-error");
-      saveButton.textContent = "保存记录";
+      saveButton.textContent = t("movement-teaching.saveRecord", "保存记录");
     }, 5000);
   }
 }
@@ -1126,9 +1126,9 @@ function revealTrick() {
   trickReveal.classList.add("trick-reveal", "modal-form", "centered-modal");
   trickReveal.innerHTML = `
     <div class="reveal-content">
-      <h3>本次游戏技能</h3>
+      <h3>${t("movement-teaching.thisGameTrick", "本次游戏技能")}</h3>
       <p class="trick-name">${escapeHtml(GameData.currentTrick)}</p>
-      <button id="close-reveal-btn" class="primary-btn">关闭</button>
+      <button id="close-reveal-btn" class="primary-btn">${t("movement-teaching.close", "关闭")}</button>
     </div>
   `;
 
@@ -1183,18 +1183,18 @@ function addResultButtons() {
   resultModal.classList.add("result-modal", "modal-form");
   resultModal.innerHTML = `
     <div class="result-content">
-      <h2>游戏结束!</h2>
-      <p class="time-result">用时: <span>${formatTime(
+      <h2>${t("movement-teaching.gameOverExclamation", "游戏结束!")}</h2>
+      <p class="time-result">${t("movement-teaching.timeUsed", "用时: ")}<span>${formatTime(
         GameState.elapsedSeconds
       )}</span></p>
       <div class="result-buttons">
-        <button id="reveal-trick-btn" class="action-btn">揭示技能</button>
-        <button id="save-result-btn" class="action-btn primary">保存记录</button>
-        <button id="view-records-btn" class="action-btn">查看记录</button>
+        <button id="reveal-trick-btn" class="action-btn">${t("movement-teaching.revealTrick", "揭示技能")}</button>
+        <button id="save-result-btn" class="action-btn primary">${t("movement-teaching.saveRecord", "保存记录")}</button>
+        <button id="view-records-btn" class="action-btn">${t("movement-teaching.viewRecords", "查看记录")}</button>
       </div>
       <div class="form-actions">
-        <button id="reset-game-btn" class="primary-btn">重新开始</button>
-        <button id="back-to-menu-btn" class="secondary-btn">返回菜单</button>
+        <button id="reset-game-btn" class="primary-btn">${t("movement-teaching.restart", "重新开始")}</button>
+        <button id="back-to-menu-btn" class="secondary-btn">${t("movement-teaching.backToMenu", "返回菜单")}</button>
       </div>
     </div>
   `;
@@ -1252,6 +1252,10 @@ function closeResultModal() {
 // toast 桥（P12）：toast 组件实例 onReady 回填（见 initMovementTeachingGame 内实例化）；
 // 调用点零改动。降级语义：组件缺失（enabled:false / 未注册）→ console.log（非关键 UX）
 let toastApi = null;
+let pageI18n = null;
+function t(key, fb, params) {
+  return pageI18n ? pageI18n.t(key, params ?? fb, fb) : fb;
+}
 function showToast(message, type = "info", duration = 3000) {
   if (toastApi) toastApi.show(message, type, duration);
   else console.log("[toast]", type, message);
@@ -1270,6 +1274,7 @@ window.RecordModule = {
  *  组件入口（原 core.js 的 DOMContentLoaded 初始化，kernel render 时执行）
  * ================================================================= */
 export function initMovementTeachingGame(ctx, bridge) {
+  pageI18n = ctx && ctx.i18n ? ctx.i18n : null;
   // cleanup 契约：静态骨架监听经 signal 登记，重渲染时 abort 统一解绑，
   // 防止不刷新页面的重复 render 双绑双触发
   const bindAbort = new AbortController();

@@ -9,11 +9,13 @@
  * 组件名 "draw-machine" 是跨页公开标识；页面侧取用写法见 front/view.js 头注释。
  */
 import { createDrawMachine } from "./view.js";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "component-draw-machine",
-  inject: ["ui"],
+  inject: ["ui", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     // 内核组件注册表（B1 批次）未就绪时优雅降级：不注册、不抛错，页面侧 ctx.ui.component() 返回空
     if (typeof ctx.ui.registerComponent !== "function") {
       console.error(

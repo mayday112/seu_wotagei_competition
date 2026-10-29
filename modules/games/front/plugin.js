@@ -12,11 +12,13 @@
  */
 
 import { icon, ICON_NAMES } from "/web/icons.mjs";
+import { registerLocales } from "./locales/index.mjs";
 
 export default {
   name: "games", // key 必须 = 模块 id，kernel 装配完按它 render
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
     ctx.ui.register({
       key: "games",
       component(el, meta, ctx2) {
@@ -28,20 +30,24 @@ export default {
         const { signal } = bindAbort;
 
         // 返回主页
-        homeButton.addEventListener("click", () => {
-          window.location.href = "/m/home";
-        }, { signal });
+        if (homeButton) {
+          homeButton.addEventListener("click", () => {
+            window.location.href = "/m/home";
+          }, { signal });
+        }
 
         // 渲染游戏卡片
         fetch("/api/modules")
           .then((r) => r.json())
           .then((modules) => {
+            if (!grid) return;
             const list = modules
               .filter((m) => (m.nav || []).includes("games") && m.id !== "games")
               .sort((a, b) => (a.order || 0) - (b.order || 0));
 
             if (list.length === 0) {
-              grid.innerHTML = "<p>暂无小游戏，请在 modules/modules.json 中注册</p>";
+              const emptyText = ctx2 && ctx2.i18n ? ctx2.i18n.t("games.noGames", "暂无小游戏，请在 modules/modules.json 中注册") : "暂无小游戏，请在 modules/modules.json 中注册";
+              grid.innerHTML = `<p>${emptyText}</p>`;
               return;
             }
 
@@ -50,7 +56,9 @@ export default {
               card.type = "button";
               card.className = "game-card";
               card.dataset.game = m.id;
-              card.title = m.description || "";
+              const translatedDesc = ctx2 && ctx2.i18n ? ctx2.i18n.t(`modules.${m.id}.desc`, m.description || "") : (m.description || "");
+              const translatedName = ctx2 && ctx2.i18n ? ctx2.i18n.t(`modules.${m.id}.name`, m.name) : m.name;
+              card.title = translatedDesc;
               card.addEventListener("click", () => {
                 window.location.href = m.route;
               });
@@ -70,15 +78,17 @@ export default {
                 { size: 48 }
               );
               const nameEl = document.createElement("h2");
-              nameEl.textContent = m.name;
+              nameEl.textContent = translatedName;
               const descEl = document.createElement("p");
-              descEl.textContent = m.description || "";
+              descEl.textContent = translatedDesc;
               card.append(iconWrap, nameEl, descEl);
               grid.appendChild(card);
             });
           })
           .catch(() => {
-            grid.innerHTML = "<p>无法连接服务器，请先启动 node server.js</p>";
+            if (!grid) return;
+            const errText = ctx2 && ctx2.i18n ? ctx2.i18n.t("games.serverDisconnected", "无法连接服务器，请先启动 node server.js") : "无法连接服务器，请先启动 node server.js";
+            grid.innerHTML = `<p>${errText}</p>`;
           });
 
         // 页面淡入效果

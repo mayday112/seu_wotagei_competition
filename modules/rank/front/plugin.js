@@ -27,6 +27,7 @@
 
 import { icon } from "/web/icons.mjs";
 import { pickOne } from "/web/lib/random.mjs";
+import { registerLocales } from "./locales/index.mjs";
 
 // HTML 转义：winners 数据可经后端接口被局域网任意客户端改写，插入 innerHTML 前须转义
 function escapeHtml(value) {
@@ -42,8 +43,10 @@ const HTML_ESCAPES = {
 
 export default {
   name: "rank", // key 必须 = 模块 id，kernel 装配完按它 render
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
+    const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
     ctx.ui.register({
       key: "rank",
       component(el, meta, ctx2) {
@@ -239,7 +242,7 @@ export default {
           while (top3Players.length < 3) {
             top3Players.push({
               rank: top3Players.length + 1,
-              name: "- 暂无 -",
+              name: t("rank.emptyPlaceholder", "- 暂无 -"),
             });
           }
 
@@ -270,14 +273,14 @@ export default {
           if (!container) return;
 
           if (!chapter2Data || !chapter2Data.winner) {
-            container.innerHTML = "<p>请完成所有章节的比赛</p>";
+            container.innerHTML = `<p>${escapeHtml(t("rank.completeAllNotice", "请完成所有章节的比赛"))}</p>`;
             return;
           }
 
           container.innerHTML = `
             <div class="champion-trophy">${icon("trophy", { size: 50 })}</div>
             <div class="champion-name">${escapeHtml(chapter2Data.winner)}</div>
-            <p>恭喜获得总冠军！</p>
+            <p>${escapeHtml(t("rank.congratsChampion", "恭喜获得总冠军！"))}</p>
           `;
         }
 
@@ -285,10 +288,10 @@ export default {
         function showErrorMessage() {
           // 简化错误信息，只显示相关部分的错误
           document.getElementById("chapter2-top3").innerHTML =
-            "<p class='error'>加载数据失败，请刷新页面重试</p>";
+            `<p class="error">${escapeHtml(t("rank.loadDataError", "加载数据失败，请刷新页面重试"))}</p>`;
 
           document.getElementById("champion-display").innerHTML =
-            "<p class='error'>加载数据失败，请刷新页面重试</p>";
+            `<p class="error">${escapeHtml(t("rank.loadDataError", "加载数据失败，请刷新页面重试"))}</p>`;
         }
 
         // 加载并显示第二章节比赛流程图
@@ -311,14 +314,14 @@ export default {
             .catch((error) => {
               console.error("加载比赛流程数据失败:", error);
               bracketContainer.innerHTML =
-                "<p class='error'>无法加载比赛流程数据，请刷新页面重试。</p>";
+                `<p class="error">${escapeHtml(t("rank.loadBracketError", "无法加载比赛流程数据，请刷新页面重试。"))}</p>`;
             });
         }
 
         // 显示第二章节比赛流程图
         function displayTournamentBracket(tournamentData, container) {
           if (!tournamentData || !tournamentData.bracket) {
-            container.innerHTML = "<p>暂无比赛数据</p>";
+            container.innerHTML = `<p>${escapeHtml(t("rank.noTournamentData", "暂无比赛数据"))}</p>`;
             return;
           }
 
@@ -329,17 +332,17 @@ export default {
           const bracketHTML = `
             <div class="tournament-flow">
               <div class="bracket-section">
-                <h3 class="bracket-title winner-title">胜者组</h3>
+                <h3 class="bracket-title winner-title">${escapeHtml(t("rank.winnerBracket", "胜者组"))}</h3>
                 ${createWinnerBracket(tournamentData.bracket.winner)}
               </div>
 
               <div class="bracket-section">
-                <h3 class="bracket-title loser-title">败者组</h3>
+                <h3 class="bracket-title loser-title">${escapeHtml(t("rank.loserBracket", "败者组"))}</h3>
                 ${createLoserBracket(tournamentData.bracket.loser)}
               </div>
 
               <div class="bracket-section">
-                <h3 class="bracket-title final-title">决赛</h3>
+                <h3 class="bracket-title final-title">${escapeHtml(t("rank.finalBracket", "决赛"))}</h3>
                 ${createFinalBracket(tournamentData.bracket.final)}
               </div>
             </div>
@@ -355,14 +358,14 @@ export default {
             !Array.isArray(winnerBracket) ||
             winnerBracket.length === 0
           ) {
-            return "<p>暂无胜者组数据</p>";
+            return `<p>${escapeHtml(t("rank.noWinnerBracketData", "暂无胜者组数据"))}</p>`;
           }
 
           let html = '<div class="bracket-rounds grid-flow winner-rounds">';
 
           winnerBracket.forEach((round, roundIndex) => {
             html += `<div class="bracket-round" data-round="${escapeHtml(round.round)}">
-              <div class="round-title">第${escapeHtml(round.round)}轮</div>
+              <div class="round-title">${escapeHtml(t("rank.roundTitle", `第${round.round}轮`, { n: round.round }))}</div>
               <div class="matches-container">`;
 
             if (round.matches && Array.isArray(round.matches)) {
@@ -385,14 +388,14 @@ export default {
             !Array.isArray(loserBracket) ||
             loserBracket.length === 0
           ) {
-            return "<p>暂无败者组数据</p>";
+            return `<p>${escapeHtml(t("rank.noLoserBracketData", "暂无败者组数据"))}</p>`;
           }
 
           let html = '<div class="bracket-rounds grid-flow loser-rounds">';
 
           loserBracket.forEach((round, roundIndex) => {
             html += `<div class="bracket-round" data-round="${escapeHtml(round.round)}">
-              <div class="round-title">第${escapeHtml(round.round)}轮</div>
+              <div class="round-title">${escapeHtml(t("rank.roundTitle", `第${round.round}轮`, { n: round.round }))}</div>
               <div class="matches-container">`;
 
             if (round.matches && Array.isArray(round.matches)) {
@@ -415,13 +418,13 @@ export default {
             !Array.isArray(finalBracket) ||
             finalBracket.length === 0
           ) {
-            return "<p>暂无决赛数据</p>";
+            return `<p>${escapeHtml(t("rank.noFinalBracketData", "暂无决赛数据"))}</p>`;
           }
 
           let html = '<div class="bracket-rounds grid-flow final-rounds">';
 
           finalBracket.forEach((round, roundIndex) => {
-            let roundTitle = round.round === 1 ? "决赛" : "冠军决定战";
+            let roundTitle = round.round === 1 ? t("rank.finalRound", "决赛") : t("rank.grandFinalRound", "冠军决定战");
             html += `<div class="bracket-round" data-round="${escapeHtml(round.round)}">
               <div class="round-title">${roundTitle}</div>
               <div class="matches-container">`;

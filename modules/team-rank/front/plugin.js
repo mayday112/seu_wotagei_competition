@@ -16,11 +16,25 @@
  */
 
 import { iconEl } from "/web/icons.mjs";
+import { registerLocales } from "./locales/index.mjs";
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch]);
+}
+const HTML_ESCAPES = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
 
 export default {
   name: "team-rank", // key 必须 = 模块 id，kernel 装配完按它 render
-  inject: ["ui", "api"],
+  inject: ["ui", "api", "i18n"],
   apply(ctx) {
+    registerLocales(ctx);
+    const t = (key, fb, params) => (ctx && ctx.i18n ? ctx.i18n.t(key, params ?? fb, fb) : fb);
     ctx.ui.register({
       key: "team-rank",
       component(el, meta, ctx2) {
@@ -160,11 +174,11 @@ export default {
 
           const groupName = document.createElement("div");
           groupName.className = "rank-group";
-          groupName.textContent = `${group.id}组`;
+          groupName.textContent = t("team-rank.groupName", `${group.id}组`, { id: group.id });
 
           const stats = document.createElement("div");
           stats.className = "rank-stats";
-          stats.textContent = `${group.wins}胜 ${group.losses}负`;
+          stats.textContent = t("team-rank.record", `${group.wins}胜 ${group.losses}负`, { wins: group.wins, losses: group.losses });
 
           info.appendChild(groupName);
           info.appendChild(stats);
@@ -192,8 +206,8 @@ export default {
           const rankList = document.getElementById("rank-list");
           rankList.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #ef4444;">
-              <h2>未找到比赛结果</h2>
-              <p style="margin-top: 20px; color: #888;">请先完成团体赛</p>
+              <h2>${escapeHtml(t("team-rank.noResults", "未找到比赛结果"))}</h2>
+              <p style="margin-top: 20px; color: #888;">${escapeHtml(t("team-rank.completeTeamNotice", "请先完成团体赛"))}</p>
             </div>
           `;
         }

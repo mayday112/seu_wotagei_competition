@@ -236,7 +236,7 @@ section {
 }
 
 .bracket-match.current::before {
-  content: "当前";
+  content: attr(data-current-label);
   position: absolute;
   top: -10px;
   right: -10px;
@@ -258,6 +258,7 @@ section {
 }
 
 .bracket-match::after {
+  content: attr(data-match-label);
   font-size: 12px;
   position: absolute;
   top: 2px;
@@ -265,27 +266,27 @@ section {
   color: #888;
 }
 
-.bracket-match.winner-r1-m0::after {
+.bracket-match.winner-r1-m0:not([data-match-label])::after {
   content: "比赛一";
 }
 
-.bracket-match.winner-r1-m1::after {
+.bracket-match.winner-r1-m1:not([data-match-label])::after {
   content: "比赛二";
 }
 
-.bracket-match.loser-r1-m0::after {
+.bracket-match.loser-r1-m0:not([data-match-label])::after {
   content: "比赛三";
 }
 
-.bracket-match.winner-r2-m0::after {
+.bracket-match.winner-r2-m0:not([data-match-label])::after {
   content: "比赛四";
 }
 
-.bracket-match.loser-r2-m0::after {
+.bracket-match.loser-r2-m0:not([data-match-label])::after {
   content: "比赛五";
 }
 
-.bracket-match.final-r1-m0::after {
+.bracket-match.final-r1-m0:not([data-match-label])::after {
   content: "决赛";
 }
 
